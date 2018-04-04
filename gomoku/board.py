@@ -49,7 +49,7 @@ class Board:
       Output:
         a list of legal move. ie. [ [2,3], [4,5], ... ]
     """
-    result = list(np.argwhere(self.state==0))
+    result = map(tuple, np.argwhere(self.state==0))
     return result
 
   def get_current_player_feature_box(self, action = None):
@@ -165,6 +165,7 @@ class Board:
           output += "%2s " % self.token[self.state[i][j]]
       output += "\n"
       print(output)
+    print("")
 
   def reset(self):
     self.current_player = 1

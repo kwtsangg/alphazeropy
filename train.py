@@ -201,7 +201,6 @@ if __name__ == "__main__":
   parser.add_argument("--rotation-symmetry", default=[0,1,2,3], action="store", nargs="+", type=int,   help="rotational symmetry (anti-clockwise), 0 = no rotation, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg")
   parser.add_argument("--no-horizontal-flip-symmetry", default=True, action="store_false", help="disable symmetry of horizontal flipping")
   # other
-  parser.add_argument("--verbose", default=False, action="store_true", help="Print more messages.")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
 

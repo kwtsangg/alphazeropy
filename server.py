@@ -27,7 +27,7 @@ class Human:
     """
     proposed_move = raw_input(" move is : ")
     try:
-      proposed_move = map(int, proposed_move.split(","))
+      proposed_move = tuple(map(int, proposed_move.split(",")))
     except:
       pass
     if not proposed_move in Board.get_legal_action():
