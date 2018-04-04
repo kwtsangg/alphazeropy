@@ -53,25 +53,27 @@ class train_pipeline:
     self.server           = Server(self.Board)
 
     # AI brain params
-    self.load_path        = args.load_path
-    self.save_path        = args.save_path
-    self.n_feature_plane  = args.n_feature_plane
-    self.n_filter         = args.n_filter
-    self.kernel_size_conv = args.kernel_size_conv
-    self.kernel_size_res  = args.kernel_size_res
-    self.n_res_blocks     = args.n_res_blocks
-    self.bn_axis          = args.bn_axis
+    self.load_path         = args.load_path
+    self.save_path         = args.save_path
+    self.n_feature_plane   = args.n_feature_plane
+    self.n_filter          = args.n_filter
+    self.kernel_size_conv  = args.kernel_size_conv
+    self.kernel_size_res   = args.kernel_size_res
+    self.n_res_blocks      = args.n_res_blocks
+    self.l2_regularization = args.l2_regularization
+    self.bn_axis           = args.bn_axis
 
-    self.AI_brain         = AlphaZero(
-              save_path        = self.save_path,
-              board_height     = self.board_height,
-              board_width      = self.board_width,
-              n_feature_plane  = self.n_feature_plane,
-              n_filter         = self.n_filter,
-              kernel_size_conv = self.kernel_size_conv,
-              kernel_size_res  = self.kernel_size_res,
-              n_res_blocks     = self.n_res_blocks,
-              bn_axis          = self.bn_axis
+    self.AI_brain          = AlphaZero(
+              save_path         = self.save_path,
+              board_height      = self.board_height,
+              board_width       = self.board_width,
+              n_feature_plane   = self.n_feature_plane,
+              n_filter          = self.n_filter,
+              kernel_size_conv  = self.kernel_size_conv,
+              kernel_size_res   = self.kernel_size_res,
+              n_res_blocks      = self.n_res_blocks,
+              l2_regularization = self.l2_regularization,
+              bn_axis           = self.bn_axis
             )
     if self.load_path is not None:
       self.AI_brain.load_class(self.load_path)
@@ -181,6 +183,7 @@ if __name__ == "__main__":
   parser.add_argument("--kernel-size-conv",  default=(3,3),     action="store",            type=tuple, help="kernel size of first convolution layer")
   parser.add_argument("--kernel-size-res",   default=(3,3),     action="store",            type=tuple, help="kernel size of residual blocks")
   parser.add_argument("--n-res-blocks",      default=5,         action="store",            type=int,   help="number of residual blocks")
+  parser.add_argument("--l2-regularization", default=1e-4,      action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
   parser.add_argument("--bn-axis",           default=-1,        action="store",            type=int,   help="batch normalization axis. For 'tf', it is 3. For 'th', it is 1.")
   # training params 
   parser.add_argument("--optimizer",         default="adam",    action="store",            type=str,   help="method of gradient descent (adam or sgd)")
