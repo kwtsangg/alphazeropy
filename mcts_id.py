@@ -109,39 +109,39 @@ class Tree:
     self.__init__()
 
 class TreeNode:
-    def __init__(self):
-      self.parent_prior    = {}      # a map from the parent id to the corresponded prior probability of selecting this node from the parent
-      self.children_action = {}      # a map from the children id to the action by which this node can move to the children
-      self.N               = 0       # visit count  (It is used to encourage exploration)
-      self.N_select        = 0       # select count (It is used to calculate the move-select probabilty)
-      self.Q               = 0       # mean of action-value
-#      self.Q_var           = 0       # variance of Q times N (not sample variance)
+  def __init__(self):
+    self.parent_prior    = {}      # a map from the parent id to the corresponded prior probability of selecting this node from the parent
+    self.children_action = {}      # a map from the children id to the action by which this node can move to the children
+    self.N               = 0       # visit count  (It is used to encourage exploration)
+    self.N_select        = 0       # select count (It is used to calculate the move-select probabilty)
+    self.Q               = 0       # mean of action-value
+#    self.Q_var           = 0       # variance of Q times N (not sample variance)
 
-    def add_parent(self, parent_id, prior_p):
-      self.parent_prior[parent_id] = prior_p
+  def add_parent(self, parent_id, prior_p):
+    self.parent_prior[parent_id] = prior_p
 
-    def delete_parent(self, parent_id):
-      del self.parent_prior[parent_id]
+  def delete_parent(self, parent_id):
+    del self.parent_prior[parent_id]
 
-    def add_children(self, children_id, action):
-      self.children_action[children_id] = action
+  def add_children(self, children_id, action):
+    self.children_action[children_id] = action
 
-    def get_QplusU(self, c_puct, parent_id, parent_N, var_coeff = 1.):
-#      return self.Q + var_coeff*np.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
-      return self.Q + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
+  def get_QplusU(self, c_puct, parent_id, parent_N, var_coeff = 1.):
+#    return self.Q + var_coeff*np.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
+    return self.Q + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
 
-    def update(self, leaf_value):
-      # formula, see http://datagenetics.com/blog/november22017/index.html
-      old_Q       = self.Q
-      self.N     += 1
-      self.Q     += (leaf_value - self.Q)/self.N  # incremental mean
-#      self.Q_var += (leaf_value - old_Q)*(leaf_value - self.Q)
+  def update(self, leaf_value):
+    # formula, see http://datagenetics.com/blog/november22017/index.html
+    old_Q       = self.Q
+    self.N     += 1
+    self.Q     += (leaf_value - self.Q)/self.N  # incremental mean
+#    self.Q_var += (leaf_value - old_Q)*(leaf_value - self.Q)
 
-    def is_root(self):
-      return self.parent_prior == {}
+  def is_root(self):
+    return self.parent_prior == {}
 
-    def is_leaf(self):
-      return self.children_action == {}
+  def is_leaf(self):
+    return self.children_action == {}
 
 class MCTS:
   def __init__(self, policy_value_fn, c_puct=10., n_rollout=100):
