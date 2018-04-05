@@ -13,6 +13,7 @@ Description=""" To make MCTS by PUCT algorithm
 #  Module
 #===============================================================================
 import numpy as np
+import math
 import copy
 
 #===============================================================================
@@ -90,7 +91,7 @@ class Tree:
 
   def update_root_id(self, next_root_id):
     """
-      Here I delete other children nodes only but not branches to save time because the total number of nodes is not many, in O(10^6) now.
+      Here I can delete other children nodes only but not branches to save time because the total number of nodes is not many, in O(10^6) now.
     """
     if not next_root_id in self.nodes:
       self.reset()
@@ -126,21 +127,23 @@ class TreeNode:
     self.children_action[children_id] = action
 
   def get_QplusU(self, c_puct, parent_id, parent_N, var_coeff = 1.):
-#    return self.Q + var_coeff*np.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
-    return self.Q + c_puct*self.parent_prior[parent_id]*np.sqrt(parent_N)/(1.+self.N)
+#    return self.Q + var_coeff*math.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
+    return self.Q + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
 
   def update(self, leaf_value):
     # formula, see http://datagenetics.com/blog/november22017/index.html
-    old_Q       = self.Q
+#    old_Q       = self.Q
     self.N     += 1
     self.Q     += (leaf_value - self.Q)/self.N  # incremental mean
 #    self.Q_var += (leaf_value - old_Q)*(leaf_value - self.Q)
 
   def is_root(self):
-    return self.parent_prior == {}
+#    return self.parent_prior == {}
+    return not self.parent_prior
 
   def is_leaf(self):
-    return self.children_action == {}
+#    return self.children_action == {}
+    return not self.children_action
 
 class MCTS:
   def __init__(self, policy_value_fn, c_puct=10., n_rollout=100):
