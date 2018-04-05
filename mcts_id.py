@@ -52,7 +52,6 @@ class Tree:
         children_id = self.register(Board.get_current_player_feature_box_id(action), leaf_id, policy[1])
         self.nodes[leaf_id].add_children(children_id, action)
       else:
-        action = tuple(action)
         children_id = self.register(Board.get_current_player_feature_box_id(action), leaf_id, policy[0][action])
         self.nodes[leaf_id].add_children(children_id, action)
 

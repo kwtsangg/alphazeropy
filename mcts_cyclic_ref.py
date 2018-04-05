@@ -67,7 +67,6 @@ class TreeNode:
           if action not in self.children:
             self.children[action] = TreeNode(self, policy[1])
         else:
-          action = tuple(action)
           if action not in self.children:
             self.children[action] = TreeNode(self, policy[0][action])
 
