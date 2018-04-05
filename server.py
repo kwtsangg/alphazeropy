@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function # to prevent Py2 from interpreting it as a tuple
 __file__       = "server.py"
 __author__     = "Ka Wa Tsang"
 __copyright__  = "Copyright 2018"
