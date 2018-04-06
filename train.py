@@ -93,7 +93,7 @@ class train_pipeline:
 
     # other training params
     self.play_batch_size             = args.play_batch_size
-    self.game_batch_num              = args.game_batch_num
+    self.game_batch_size             = args.game_batch_size
     self.rotation_symmetry           = args.rotation_symmetry
     if not 0 in self.rotation_symmetry:
       self.rotation_symmetry.append(0)
@@ -150,8 +150,8 @@ class train_pipeline:
   def train(self):
     try:
       train_x, train_y_policy, train_y_value = [], [], []
-      for i in range(self.game_batch_num):
-        print("%i/%i" % (i, self.game_batch_num))
+      for i in range(self.game_batch_size):
+        print("%i/%i" % (i, self.game_batch_size))
         state_result_list, policy_result_list, value_result_list = self.get_game_data(self.play_batch_size)
         train_x.extend(state_result_list)
         train_y_policy.extend(policy_result_list)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
   parser.add_argument("--epochs",              default=50,        action="store",            type=int,   help="number of training steps for each gradient descent update")
   # other training params
   parser.add_argument("--play-batch-size",     default=1,         action="store",            type=int,   help="number of games generated in each calling")
-  parser.add_argument("--game-batch-num",      default=5000,      action="store",            type=int,   help="total number of games generated")
+  parser.add_argument("--game-batch-size",     default=5000,      action="store",            type=int,   help="total number of games generated")
   parser.add_argument("--rotation-symmetry",   default=[0,1,2,3], action="store", nargs="+", type=int,   help="rotational symmetry (anti-clockwise), 0 = no rotation, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg")
   parser.add_argument("--reflection-symmetry", default=False,     action="store_true",                   help="make use of reflection symmetry to generate more game data ")
   # other
