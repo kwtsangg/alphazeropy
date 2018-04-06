@@ -51,10 +51,9 @@ class Tree:
       if type(action) == str:
         # 'PASS' move
         children_id = self.register(Board.get_current_player_feature_box_id(action), leaf_id, policy[1])
-        self.nodes[leaf_id].add_children(children_id, action)
       else:
         children_id = self.register(Board.get_current_player_feature_box_id(action), leaf_id, policy[0][action])
-        self.nodes[leaf_id].add_children(children_id, action)
+      self.nodes[leaf_id].add_children(children_id, action)
 
   def select(self, parent_id, c_puct):
     """
@@ -63,8 +62,8 @@ class Tree:
       A tuple of (children_id, action tuple)
     """
     children_action = self.nodes[parent_id].children_action
-    parent_N        = self.nodes[parent_id].N
-    ID_max_QplusU = max(children_action, key=lambda x: self.nodes[x].get_QplusU(c_puct, parent_id, parent_N))
+    parent_N_select = self.nodes[parent_id].N_select
+    ID_max_QplusU = max(children_action, key=lambda x: self.nodes[x].get_QplusU(c_puct, parent_id, parent_N_select))
     return (ID_max_QplusU, self.nodes[parent_id].children_action[ID_max_QplusU])
 
   def update_parents_recursively(self, leaf_id, leaf_value):
@@ -126,9 +125,9 @@ class TreeNode:
   def add_children(self, children_id, action):
     self.children_action[children_id] = action
 
-  def get_QplusU(self, c_puct, parent_id, parent_N, var_coeff = 1.):
+  def get_QplusU(self, c_puct, parent_id, parent_N_select):
 #    return self.Q + var_coeff*math.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
-    return self.Q + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
+    return self.Q + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N_select)/(1.+self.N)
 
   def update(self, leaf_value):
     # formula, see http://datagenetics.com/blog/november22017/index.html
@@ -162,6 +161,7 @@ class MCTS:
       CAUTION: This function will modify the input Board. So a copy.deepcopy must be provided.
     """
     node_id = self.Tree.root_id
+    self.Tree.nodes[node_id].N_select += 1
     while not self.Tree.nodes[node_id].is_leaf():
       # greedily select next move according to Q+U
       node_id, action = self.Tree.select(node_id, self.c_puct)
