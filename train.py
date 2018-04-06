@@ -10,9 +10,9 @@ __date__       = "2018-Feb-15"
 Description="""
   To train my AI.
   Example:
-      python train.py --game gomoku --n-in-row 5 --board-height 9 --board-width 9
-      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --rotation-symmetry 0
-      python train.py --game reversi --board-height 8 --board-width 8
+      python train.py --game gomoku --n-in-row 5 --board-height 9 --board-width 9 --reflection-symmetry
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --reflection-symmetry --rotation-symmetry 0
+      python train.py --game reversi --board-height 8 --board-width 8 --reflection-symmetry
 """
 
 #===============================================================================
