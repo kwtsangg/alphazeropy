@@ -97,7 +97,7 @@ class train_pipeline:
     self.rotation_symmetry           = args.rotation_symmetry
     if not 0 in self.rotation_symmetry:
       self.rotation_symmetry.append(0)
-    self.no_horizontal_flip_symmetry = args.no_horizontal_flip_symmetry
+    self.reflection_symmetry         = args.reflection_symmetry
 
   #===============================#
   # Train pipeline 
@@ -140,7 +140,7 @@ class train_pipeline:
         value_result_list.append( value )
 
         # reflect the state horizontally before rotation
-        if not self.no_horizontal_flip_symmetry:
+        if self.reflection_symmetry:
           state_result_list.append( [ np.rot90(np.fliplr(state[j]), i) for j in range(n_feature_plane) ] )
           tmp_policy = np.rot90(np.fliplr(policy[:-1].reshape(height, width)), i).reshape(-1,)
           policy_result_list.append( np.append(tmp_policy, policy[-1]) )
@@ -171,35 +171,35 @@ class train_pipeline:
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=argparse.RawTextHelpFormatter)
   # board params
-  parser.add_argument("--game",                                 action="store",            type=str,   help="gomoku, connectfour, reversi")
-  parser.add_argument("--board-height",      default=6 ,        action="store",            type=int,   help="height of the board")
-  parser.add_argument("--board-width",       default=6 ,        action="store",            type=int,   help="width of the board")
-  parser.add_argument("--n-in-row",                             action="store",            type=int,   help="needed if game is gomoku or connectfour")
+  parser.add_argument("--game",                                   action="store",            type=str,   help="gomoku, connectfour, reversi")
+  parser.add_argument("--board-height",        default=6 ,        action="store",            type=int,   help="height of the board")
+  parser.add_argument("--board-width",         default=6 ,        action="store",            type=int,   help="width of the board")
+  parser.add_argument("--n-in-row",                               action="store",            type=int,   help="needed if game is gomoku or connectfour")
   # AI brain params
-  parser.add_argument("--save-path",                            action="store",            type=str,   help="directory path that trained model will be saved in")
-  parser.add_argument("--load-path",                            action="store",            type=str,   help="directory path containing trained model")
-  parser.add_argument("--n-feature-plane",   default=3,         action="store",            type=int,   help="number of feature plane")
-  parser.add_argument("--n-filter",          default=32,        action="store",            type=int,   help="number of filters used in conv2D")
-  parser.add_argument("--kernel-size-conv",  default=(3,3),     action="store",            type=tuple, help="kernel size of first convolution layer")
-  parser.add_argument("--kernel-size-res",   default=(3,3),     action="store",            type=tuple, help="kernel size of residual blocks")
-  parser.add_argument("--n-res-blocks",      default=5,         action="store",            type=int,   help="number of residual blocks")
-  parser.add_argument("--l2-regularization", default=1e-4,      action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
-  parser.add_argument("--bn-axis",           default=-1,        action="store",            type=int,   help="batch normalization axis. For 'tf', it is 3. For 'th', it is 1.")
+  parser.add_argument("--save-path",                              action="store",            type=str,   help="directory path that trained model will be saved in")
+  parser.add_argument("--load-path",                              action="store",            type=str,   help="directory path containing trained model")
+  parser.add_argument("--n-feature-plane",     default=3,         action="store",            type=int,   help="number of feature plane")
+  parser.add_argument("--n-filter",            default=32,        action="store",            type=int,   help="number of filters used in conv2D")
+  parser.add_argument("--kernel-size-conv",    default=(3,3),     action="store",            type=tuple, help="kernel size of first convolution layer")
+  parser.add_argument("--kernel-size-res",     default=(3,3),     action="store",            type=tuple, help="kernel size of residual blocks")
+  parser.add_argument("--n-res-blocks",        default=5,         action="store",            type=int,   help="number of residual blocks")
+  parser.add_argument("--l2-regularization",   default=1e-4,      action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
+  parser.add_argument("--bn-axis",             default=-1,        action="store",            type=int,   help="batch normalization axis. For 'tf', it is 3. For 'th', it is 1.")
   # training params 
-  parser.add_argument("--optimizer",         default="adam",    action="store",            type=str,   help="method of gradient descent (adam or sgd)")
-  parser.add_argument("--learning-rate",     default=1e-3,      action="store",            type=float, help="learning rate")
-  parser.add_argument("--learning-momentum", default=0.9,       action="store",            type=float, help="learning momentum of sgd")
-  parser.add_argument("--temp",              default=1.,        action="store",            type=float, help="temperature to control how greedy of selecting next action")
-  parser.add_argument("--temp-trans-after",  default=20,        action="store",            type=int,   help="after this number of moves, the temperature becomes 1e-3.")
-  parser.add_argument("--n-rollout",         default=400,       action="store",            type=int,   help="number of simulations for each move")
-  parser.add_argument("--c-puct",            default=5,         action="store",            type=int,   help="coefficient of controlling the extent of exploration versus exploitation")
-  parser.add_argument("--batch-size",        default=512,       action="store",            type=int,   help="mini-batch size for training")
-  parser.add_argument("--epochs",            default=50,        action="store",            type=int,   help="number of training steps for each gradient descent update")
+  parser.add_argument("--optimizer",           default="adam",    action="store",            type=str,   help="method of gradient descent (adam or sgd)")
+  parser.add_argument("--learning-rate",       default=1e-3,      action="store",            type=float, help="learning rate")
+  parser.add_argument("--learning-momentum",   default=0.9,       action="store",            type=float, help="learning momentum of sgd")
+  parser.add_argument("--temp",                default=1.,        action="store",            type=float, help="temperature to control how greedy of selecting next action")
+  parser.add_argument("--temp-trans-after",    default=20,        action="store",            type=int,   help="after this number of moves, the temperature becomes 1e-3.")
+  parser.add_argument("--n-rollout",           default=400,       action="store",            type=int,   help="number of simulations for each move")
+  parser.add_argument("--c-puct",              default=5,         action="store",            type=int,   help="coefficient of controlling the extent of exploration versus exploitation")
+  parser.add_argument("--batch-size",          default=512,       action="store",            type=int,   help="mini-batch size for training")
+  parser.add_argument("--epochs",              default=50,        action="store",            type=int,   help="number of training steps for each gradient descent update")
   # other training params
-  parser.add_argument("--play-batch-size",   default=1,         action="store",            type=int,   help="number of games generated in each calling")
-  parser.add_argument("--game-batch-num",    default=5000,      action="store",            type=int,   help="total number of games generated")
-  parser.add_argument("--rotation-symmetry", default=[0,1,2,3], action="store", nargs="+", type=int,   help="rotational symmetry (anti-clockwise), 0 = no rotation, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg")
-  parser.add_argument("--no-horizontal-flip-symmetry", default=True, action="store_false", help="disable symmetry of horizontal flipping")
+  parser.add_argument("--play-batch-size",     default=1,         action="store",            type=int,   help="number of games generated in each calling")
+  parser.add_argument("--game-batch-num",      default=5000,      action="store",            type=int,   help="total number of games generated")
+  parser.add_argument("--rotation-symmetry",   default=[0,1,2,3], action="store", nargs="+", type=int,   help="rotational symmetry (anti-clockwise), 0 = no rotation, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg")
+  parser.add_argument("--reflection-symmetry", default=False,     action="store_true",                   help="make use of reflection symmetry to generate more game data ")
   # other
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
