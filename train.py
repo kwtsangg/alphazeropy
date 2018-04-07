@@ -192,7 +192,7 @@ if __name__ == "__main__":
   parser.add_argument("--temp",                default=1.,        action="store",            type=float, help="temperature to control how greedy of selecting next action")
   parser.add_argument("--temp-trans-after",    default=20,        action="store",            type=int,   help="after this number of moves, the temperature becomes 1e-3.")
   parser.add_argument("--n-rollout",           default=400,       action="store",            type=int,   help="number of simulations for each move")
-  parser.add_argument("--c-puct",              default=5,         action="store",            type=int,   help="coefficient of controlling the extent of exploration versus exploitation")
+  parser.add_argument("--c-puct",              default=5.,        action="store",            type=float, help="coefficient of controlling the extent of exploration versus exploitation")
   parser.add_argument("--batch-size",          default=512,       action="store",            type=int,   help="mini-batch size for training")
   parser.add_argument("--epochs",              default=50,        action="store",            type=int,   help="number of training steps for each gradient descent update")
   # other training params
