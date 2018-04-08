@@ -134,14 +134,18 @@ class train_pipeline:
 
       for i in self.rotation_symmetry:
         # rotate the state to generate new game data set
-        state_result_list.append( [ np.rot90(state[j], i) for j in range(n_feature_plane) ] )
+        for j in range(n_feature_plane):
+          state[j] = np.rot90(state[j], i)
+        state_result_list.append( state )
         tmp_policy = np.rot90(policy[:-1].reshape(height, width), i).reshape(-1,)
         policy_result_list.append( np.append(tmp_policy, policy[-1]) )
         value_result_list.append( value )
 
         # reflect the state horizontally before rotation
         if self.reflection_symmetry:
-          state_result_list.append( [ np.rot90(np.fliplr(state[j]), i) for j in range(n_feature_plane) ] )
+          for j in range(n_feature_plane):
+            state[j] = np.rot90(np.fliplr(state[j]), i)
+          state_result_list.append( state )
           tmp_policy = np.rot90(np.fliplr(policy[:-1].reshape(height, width)), i).reshape(-1,)
           policy_result_list.append( np.append(tmp_policy, policy[-1]) )
           value_result_list.append( value )

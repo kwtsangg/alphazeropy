@@ -26,7 +26,6 @@ from keras.layers import add
 from keras.layers.convolutional import Conv2D
 from keras import optimizers, regularizers
 from keras import backend as K
-K.set_image_data_format("channels_last")
 K.set_image_dim_ordering("tf")
 
 #===============================================================================
@@ -61,7 +60,11 @@ class AlphaZero:
 
   def build_model(self):
     # One feature map for now
-    input_data = Input(shape=(self.n_feature_plane, self.board_height, self.board_width))
+    # The following if statement seems wrong but it works.
+    if K.image_data_format() == "channels_last":
+      input_data = Input(shape=(self.n_feature_plane, self.board_height, self.board_width))
+    else:
+      input_data = Input(shape=(self.board_height, self.board_width, self.n_feature_plane))
 
     # Build for the first convolutional layer
     x = self._build_conv_block(input_data)
