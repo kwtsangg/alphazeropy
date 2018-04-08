@@ -62,8 +62,8 @@ class Tree:
       A tuple of (children_id, action tuple)
     """
     children_action = self.nodes[parent_id].children_action
-    parent_N_select = self.nodes[parent_id].N_select
-    ID_max_QplusU = max(children_action, key=lambda x: self.nodes[x].get_QplusU(c_puct, parent_id, parent_N_select))
+    parent_N        = self.nodes[parent_id].N
+    ID_max_QplusU = max(children_action, key=lambda x: self.nodes[x].get_QplusU(c_puct, parent_id, parent_N))
     return (ID_max_QplusU, self.nodes[parent_id].children_action[ID_max_QplusU])
 
   def update_parents_recursively(self, leaf_id, leaf_value):
@@ -71,9 +71,8 @@ class Tree:
       Update myself and all ancestors 
     """
     self.nodes[leaf_id].update(leaf_value)
-    if not self.nodes[leaf_id].is_root():
-      for parent_id in self.nodes[leaf_id].parent_prior:
-        self.update_parents_recursively(parent_id, -leaf_value)
+    for parent_id in self.nodes[leaf_id].parent_prior_N:
+      self.update_parents_recursively(parent_id, -leaf_value)
 
   def delete_children_recursively(self, leaf_id):
     """
@@ -109,40 +108,35 @@ class Tree:
 
 class TreeNode:
   def __init__(self):
-    self.parent_prior    = {}      # a map from the parent id to the corresponded prior probability of selecting this node from the parent
+    self.parent_prior_N  = {}      # a map from the parent id to the [corresponded prior probability of selecting this node from the parent, visit count from this parent to this node]
     self.children_action = {}      # a map from the children id to the action by which this node can move to the children
-    self.N               = 0       # visit count  (It is used to encourage exploration)
+    self.N               = 0       # total visit count  (It is used to calculate the mean of action-value)
     self.N_select        = 0       # select count (It is used to calculate the move-select probabilty)
     self.Q               = 0       # mean of action-value
-#    self.Q_var           = 0       # variance of Q times N (not sample variance)
 
   def add_parent(self, parent_id, prior_p):
-    self.parent_prior[parent_id] = prior_p
+    self.parent_prior_N[parent_id] = [prior_p, 0]
 
   def delete_parent(self, parent_id):
-    del self.parent_prior[parent_id]
+    del self.parent_prior_N[parent_id]
 
   def add_children(self, children_id, action):
     self.children_action[children_id] = action
 
-  def get_QplusU(self, c_puct, parent_id, parent_N_select):
-#    return self.Q + var_coeff*math.sqrt(self.Q_var/(self.N+1.)) + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
-    return self.Q + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N_select)/(1.+self.N)
+  def get_QplusU(self, c_puct, parent_id, parent_N):
+    return self.Q + c_puct*self.parent_prior_N[parent_id][0]*math.sqrt(parent_N)/(0.5+self.parent_prior_N[parent_id][1])
 
   def update(self, leaf_value):
-    # formula, see http://datagenetics.com/blog/november22017/index.html
-#    old_Q       = self.Q
-    self.N     += 1
-    self.Q     += (leaf_value - self.Q)/self.N  # incremental mean
-#    self.Q_var += (leaf_value - old_Q)*(leaf_value - self.Q)
+    for parent_id in self.parent_prior_N:
+      self.parent_prior_N[parent_id][1] += 1
+    self.N += 1
+    self.Q += (leaf_value - self.Q)/self.N  # incremental mean
 
   def is_root(self):
-#    return self.parent_prior == {}
-    return not self.parent_prior
+    return not self.parent_prior_N  # self.parent_prior_N == {}
 
   def is_leaf(self):
-#    return self.children_action == {}
-    return not self.children_action
+    return not self.children_action # self.children_action == {}
 
 class MCTS:
   def __init__(self, policy_value_fn, c_puct=10., n_rollout=100):
@@ -161,7 +155,6 @@ class MCTS:
       CAUTION: This function will modify the input Board. So a copy.deepcopy must be provided.
     """
     node_id = self.Tree.root_id
-    self.Tree.nodes[node_id].N_select += 1
     while not self.Tree.nodes[node_id].is_leaf():
       # greedily select next move according to Q+U
       node_id, action = self.Tree.select(node_id, self.c_puct)

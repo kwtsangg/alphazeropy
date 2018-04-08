@@ -37,24 +37,22 @@ class platform:
       if self.n_in_row is None:
         raise ValueError("Please let me know the winning criteria by --n-in-row")
 
-    sys.path.insert(0, '%s/' % self.game)
-    from board import Board
-    self.Board            = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
-    self.server           = Server(self.Board)
-
     # player1, AI/human brain params
-    self.p1_temp       = args.p1_temp
-    self.p1_n_rollout  = args.p1_n_rollout
-    self.p1_c_puct     = args.p1_c_puct
+    self.p1_temp        = args.p1_temp
+    self.p1_n_rollout   = args.p1_n_rollout
+    self.p1_c_puct      = args.p1_c_puct
 
-    self.p1_brain_path = args.p1_brain
-    self.p1_name       = args.p1_name
+    self.p1_brain_path  = args.p1_brain
+    self.p1_name        = args.p1_name
     if self.p1_brain_path is None:
-      self.p1          = Human(name=self.p1_name)
+      self.p1           = Human(name=self.p1_name)
     else:
-      self.p1_brain    = AlphaZero()
+      self.p1_brain     = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path)
-      self.p1          = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, name="AlphaZero "+self.p1_name)
+      self.p1           = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, name="AlphaZero "+self.p1_name)
+      print("Overwriting board size according to trained model (player 1) ...")
+      self.board_height = self.p1_brain.board_height
+      self.board_width  = self.p1_brain.board_width
 
     # player2, AI/human brain params
     self.p2_temp       = args.p2_temp
@@ -69,6 +67,15 @@ class platform:
       self.p2_brain    = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path)
       self.p2          = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, name="AlphaZero "+self.p2_name)
+      print("Overwriting board size according to trained model (player 2) ...")
+      self.board_height = self.p2_brain.board_height
+      self.board_width  = self.p2_brain.board_width
+
+    # Initialize board
+    sys.path.insert(0, '%s/' % self.game)
+    from board import Board
+    self.Board  = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
+    self.server = Server(self.Board)
 
   def start_game(self):
     self.server.start_game(player1=self.p1, player2=self.p2)
