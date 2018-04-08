@@ -124,7 +124,7 @@ class TreeNode:
     self.children_action[children_id] = action
 
   def get_QplusU(self, c_puct, parent_id, parent_N):
-    return self.Q + c_puct*self.parent_prior_N[parent_id][0]*math.sqrt(parent_N)/(0.5+self.parent_prior_N[parent_id][1])
+    return self.Q + c_puct*self.parent_prior_N[parent_id][0]*math.sqrt(parent_N)/(1.+self.parent_prior_N[parent_id][1])
 
   def update(self, leaf_value):
     for parent_id in self.parent_prior_N:
