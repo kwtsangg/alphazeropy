@@ -17,8 +17,6 @@ import sys
 import argparse, textwrap
 
 from server import Server, Human
-from alphazero import AlphaZero
-from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
 
 #================================================================
 # Main
@@ -47,6 +45,8 @@ class platform:
     if self.p1_brain_path is None:
       self.p1           = Human(name=self.p1_name)
     else:
+      from alphazero import AlphaZero
+      from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p1_brain     = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path)
       self.p1           = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, name="AlphaZero "+self.p1_name)
@@ -64,6 +64,8 @@ class platform:
     if self.p2_brain_path is None:
       self.p2           = Human(name=self.p2_name)
     else:
+      from alphazero import AlphaZero
+      from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path)
       self.p2           = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, name="AlphaZero "+self.p2_name)
@@ -81,7 +83,9 @@ class platform:
     self.server.start_game(player1=self.p1, player2=self.p2)
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=argparse.RawTextHelpFormatter)
+  class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+  parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=CustomFormatter)
   # player params
   parser.add_argument("--p1-brain",                        action="store",  type=str,   help="player1, directory path that store AI brain (empty means human player)")
   parser.add_argument("--p1-name",       default="Alice",  action="store",  type=str,   help="player1, name")
@@ -95,10 +99,10 @@ if __name__ == "__main__":
   # AI brain params
   parser.add_argument("--p1-temp",       default=1e-6,     action="store",  type=float, help="player1, temperature to control how greedy of selecting next action")
   parser.add_argument("--p1-n-rollout",  default=400,      action="store",  type=int,   help="player1, number of simulations for each move")
-  parser.add_argument("--p1-c-puct",     default=5,        action="store",  type=float, help="player1, coefficient of controlling the extent of exploration versus exploitation")
+  parser.add_argument("--p1-c-puct",     default=5.,       action="store",  type=float, help="player1, coefficient of controlling the extent of exploration versus exploitation")
   parser.add_argument("--p2-temp",       default=1e-6,     action="store",  type=float, help="player2, temperature to control how greedy of selecting next action")
   parser.add_argument("--p2-n-rollout",  default=400,      action="store",  type=int,   help="player2, number of simulations for each move")
-  parser.add_argument("--p2-c-puct",     default=5,        action="store",  type=float, help="player2, coefficient of controlling the extent of exploration versus exploitation")
+  parser.add_argument("--p2-c-puct",     default=5.,       action="store",  type=float, help="player2, coefficient of controlling the extent of exploration versus exploitation")
   # other
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()

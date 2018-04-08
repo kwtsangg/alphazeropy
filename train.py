@@ -169,7 +169,9 @@ class train_pipeline:
       pass
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=argparse.RawTextHelpFormatter)
+  class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+    pass
+  parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=CustomFormatter)
   # board params
   parser.add_argument("--game",                                   action="store",            type=str,   help="gomoku, connectfour, reversi")
   parser.add_argument("--board-height",        default=6 ,        action="store",            type=int,   help="height of the board")
