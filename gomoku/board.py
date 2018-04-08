@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function # to prevent Py2 from interpreting it as a tuple
-__file__       = "game.py"
+__file__       = "board.py"
 __author__     = "Ka Wa Tsang"
 __copyright__  = "Copyright 2018"
 __version__    = "1.0.1"
