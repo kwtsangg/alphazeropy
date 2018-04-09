@@ -137,14 +137,30 @@ class AlphaZero:
       return list(zip(policy_without_pass, policy_with_only_pass, value))
 
   def train(self, Board_state_array, policy_value_array, optimizer="adam", learning_rate=1e-2, learning_momentum=0.9, epochs=10, batch_size=512):
-    if optimizer == "adam":
-      myoptimizer = optimizers.Adam(lr=learning_rate)
-    elif optimizer == "sgd":
-      myoptimizer = optimizers.SGD(lr=learning_rate, momentum=learning_momentum)
-    else:
-      print("WARNING: optimizer %s is not supported. Using adam ..." % optimizer)
-      myoptimizer = optimizers.Adam(lr=learning_rate)
-    self.model.compile(loss={'policy_out': 'kullback_leibler_divergence', 'value_out': 'mean_squared_error'}, optimizer=myoptimizer)
+    # this part is needed to avoid tensorflow memory leak due to multiple model compile
+    is_new_optimizer_needed = False
+    try:
+      if self.optimizer != optimizer or self.learning_rate != learning_rate or self.learning_momentum != learning_momentum:
+        self.optimizer          = optimizer
+        self.learning_rate      = learning_rate
+        self.learning_momentum  = learning_momentum
+        is_new_optimizer_needed = True
+    except AttributeError:
+      self.optimizer         = optimizer
+      self.learning_rate     = learning_rate
+      self.learning_momentum = learning_momentum
+      is_new_optimizer_needed = True
+
+    if is_new_optimizer_needed:
+      if self.optimizer == "adam":
+        myoptimizer = optimizers.Adam(lr=self.learning_rate)
+      elif self.optimizer == "sgd":
+        myoptimizer = optimizers.SGD(lr=self.learning_rate, momentum=self.learning_momentum)
+      else:
+        print("WARNING: optimizer %s is not supported. Using adam ..." % optimizer)
+        myoptimizer = optimizers.Adam(lr=self.learning_rate)
+      self.model.compile(loss={'policy_out': 'kullback_leibler_divergence', 'value_out': 'mean_squared_error'}, optimizer=myoptimizer)
+    # actual model fit
     self.model.fit(Board_state_array, policy_value_array, epochs=epochs, batch_size=batch_size, verbose=1)
 
   def save_class(self, name, **kwargs):
