@@ -235,7 +235,7 @@ class MCTS_player:
     is_return_probs = kwargs.get('is_return_probs', False)
     temp            = float(kwargs.get('temp', self.temp))
 
-    if len(Board.get_legal_action()) > 0:
+    if Board.get_legal_action():
       move, probs, children_id = self.MCTS.get_move_probability(Board, temp)
       if self.is_self_play:
         # add Dirichlet Noise for exploration (needed for self-play training)  

@@ -26,7 +26,7 @@ class Human:
     """
       The function will ask for a move, check whether this move is valid, and then return a valid move
     """
-    proposed_move = raw_input(" move is : ")
+    proposed_move = input(" move is : ")
     try:
       proposed_move = tuple(map(int, proposed_move.split(",")))
     except:
