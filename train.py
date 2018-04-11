@@ -230,11 +230,11 @@ class train_pipeline:
       pass
 
   def train_on_dir(self):
+    imported_gamedata_set = set()
     while True:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
       is_model_trained = False
-      imported_gamedata_set = set()
       for gamedata in os.listdir(self.train_on_game_data_dir):
         if gamedata.endswith(".npy") and not gamedata in imported_gamedata_set:
           i += 1
