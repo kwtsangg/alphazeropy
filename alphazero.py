@@ -33,7 +33,7 @@ K.set_image_dim_ordering("tf")
 #===============================================================================
 class AlphaZero:
   def __init__(self,
-            save_path         = None,
+            load_path         = None,
             board_height      = 9,
             board_width       = 9,
             n_feature_plane   = 2,
@@ -44,8 +44,8 @@ class AlphaZero:
             l2_regularization = 1e-4,
             bn_axis           = -1
           ):
-    if save_path is not None:
-      self.load_model(save_path)
+    if load_path is not None:
+      self.load_class(load_path)
     else:
       self.board_height      = board_height
       self.board_width       = board_width
