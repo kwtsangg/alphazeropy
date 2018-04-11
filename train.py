@@ -230,16 +230,14 @@ class train_pipeline:
       pass
 
   def train_on_dir(self):
-    imported_gamedata_set = set()
     while True:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
       is_model_trained = False
       for gamedata in os.listdir(self.train_on_game_data_dir):
-        if gamedata.endswith(".npy") and not gamedata in imported_gamedata_set:
+        if gamedata.endswith(".npy"):
           i += 1
           print("%4i importing %s" % (i, gamedata))
-          imported_gamedata_set.add(gamedata)
           state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
