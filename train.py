@@ -234,21 +234,22 @@ class train_pipeline:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
       is_model_trained = False
+      imported_gamedata_set = set()
       for gamedata in os.listdir(self.train_on_game_data_dir):
-        if gamedata.endswith(".npy"):
+        if gamedata.endswith(".npy") and not gamedata in imported_gamedata_set:
           i += 1
           print("%4i importing %s" % (i, gamedata))
-          imported_gamedata = np.load("%s/%s" % (self.train_on_game_data_dir, gamedata))
-          state_result_list, policy_result_list, value_result_list = list(zip(*imported_gamedata))
+          imported_gamedata_set.add(gamedata)
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
           train_y_value.extend(value_result_list)
 
-          if len(train_x) > self.batch_size:
-            print("Training ...")
-            self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
-            train_x, train_y_policy, train_y_value = [], [], []
-            is_model_trained = True
+      if len(train_x) > self.batch_size:
+        print("Training ...")
+        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
+        train_x, train_y_policy, train_y_value = [], [], []
+        is_model_trained = True
 
       if is_model_trained:
         print("Saving the trained model ...")
