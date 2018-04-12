@@ -48,7 +48,7 @@ class platform:
       from alphazero import AlphaZero
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p1_brain     = AlphaZero()
-      self.p1_brain.load_class(self.p1_brain_path)
+      self.p1_brain.load_class(self.p1_brain_path, False)
       self.p1           = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, name="AlphaZero "+self.p1_name)
       print("Overwriting board size according to trained model (player 1) ...")
       self.board_height = self.p1_brain.board_height
@@ -67,7 +67,7 @@ class platform:
       from alphazero import AlphaZero
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
-      self.p2_brain.load_class(self.p2_brain_path)
+      self.p2_brain.load_class(self.p2_brain_path, False)
       self.p2           = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, name="AlphaZero "+self.p2_name)
       print("Overwriting board size according to trained model (player 2) ...")
       self.board_height = self.p2_brain.board_height

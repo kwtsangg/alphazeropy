@@ -197,12 +197,14 @@ class AlphaZero:
 
     return dir_path+"/"+savename
 
-  def load_class(self, dir_path):
+  def load_class(self, dir_path, clear_session=True):
     savename   = dir_path.split("/")
     if len(savename[-1]) == 0:
       savename = savename[-2]
     else:
       savename = savename[-1]
+    if clear_session:
+      K.clear_session()
 
     self.model = load_model('%s/%s.h5' % (dir_path, savename))
     with open('%s/%s.pkl' % (dir_path, savename), 'rb') as Input:

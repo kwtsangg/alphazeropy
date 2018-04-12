@@ -109,6 +109,7 @@ class train_pipeline:
     self.generate_game_data_dir  = args.generate_game_data_dir
     self.train_on_game_data_only = args.train_on_game_data_only
     self.train_on_game_data_dir  = args.train_on_game_data_dir
+    self.train_on_last_n_sets    = args.train_on_last_n_sets
     self.train_every_mins        = args.train_every_mins
 
     if self.generate_game_data_only:
@@ -126,6 +127,29 @@ class train_pipeline:
   # Train pipeline 
   #===============================#
 
+  def load_latest_model(self, current_model_no):
+    print("Checking on latest model ...")
+    latest_model_no  = current_model_no
+    latest_model_dir = ""
+    try: # Python2
+      model_dir_list = os.walk(self.save_path).next()[1]
+    except: # Python3
+      model_dir_list = next(os.walk(self.save_path))[1]
+    for model_dir in model_dir_list:
+      try:
+        model_no = int(model_dir.split("_")[0])
+        if model_no > latest_model_no:
+          latest_model_no  = model_no
+          latest_model_dir = model_dir
+      except:
+        pass
+    if latest_model_no == current_model_no:
+      print("No latest model. Keep the current model.")
+    else:
+      print("Loading latest model '%s/%s' ..." % (self.save_path, latest_model_dir))
+      self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
+    return latest_model_no, "%s/%s" % (self.save_path, latest_model_dir)
+
   def get_game_data(self, play_batch_size=1):
     state_result_list  = []
     policy_result_list = []
@@ -142,31 +166,9 @@ class train_pipeline:
     current_model_no = 0
     for i in range(self.play_batch_size):
       print("%i/%i" % (i, self.play_batch_size))
-      print("Checking on latest model ...")
-      latest_model_no  = 0
-      latest_model_dir = ""
-      try: # Python2
-        models_list = os.walk(self.save_path).next()[1]
-      except: # Python3
-        model_dir_list = next(os.walk(self.save_path))[1]
-      if model_dir_list:
-        for model_dir in model_dir_list:
-          try:
-            model_no = int(model_dir.split("_")[0])
-            if model_no > latest_model_no:
-              latest_model_no  = model_no
-              latest_model_dir = model_dir
-          except:
-            pass
-        if latest_model_no > current_model_no:
-          try:
-            print("Loading latest model '%s' ..." % latest_model_dir)
-            self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
-            current_model_no = latest_model_no
-          except:
-            print("Fail to load latest model. Keep the current model.")
-        else:
-          print("No latest model. Keep the current model.")
+      latest_model_no, latest_model_dir = self.load_latest_model(current_model_no)
+      if latest_model_no > current_model_no:
+        current_model_no = latest_model_no
       print("Generating game data ...")
       game_data_output = self.server.start_self_play(self.AI_player, is_shown=True, temp_trans_after=self.temp_trans_after)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
@@ -230,14 +232,15 @@ class train_pipeline:
       pass
 
   def train_on_dir(self):
+    if self.load_path is None:
+      self.load_latest_model(0)
     while True:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
-      is_model_trained = False
-      for gamedata in os.listdir(self.train_on_game_data_dir):
+      for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
         if gamedata.endswith(".npy"):
           i += 1
-          print("%4i importing %s" % (i, gamedata))
+          print("%5i importing %s" % (i, gamedata))
           state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
@@ -247,9 +250,6 @@ class train_pipeline:
         print("Training ...")
         self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
         train_x, train_y_policy, train_y_value = [], [], []
-        is_model_trained = True
-
-      if is_model_trained:
         print("Saving the trained model ...")
         self.AI_brain.save_class(name=self.savename, path=self.save_path)
       else:
@@ -296,6 +296,7 @@ if __name__ == "__main__":
   parser.add_argument("--generate-game-data-dir",                   action="store",            type=str,   help="directory path to save the generated game data (only generation, no training)")
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
   parser.add_argument("--train-on-game-data-dir",                   action="store",            type=str,   help="directory path where game data is saved for training (only training)")
+  parser.add_argument("--train-on-last-n-sets",    default=500,     action="store",            type=int,   help="train on the last n recent game")
   parser.add_argument("--train-every-mins",    default=10.,         action="store",            type=float, help="period (in mins) of performing training on game data directory")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
