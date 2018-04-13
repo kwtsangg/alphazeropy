@@ -71,8 +71,8 @@ class Board:
           C. available action with 1 and others 0
           # D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
-    last_state = self.state
     if action is not None:
+      last_state = self.state
       self.move(action)
 
     tmp_state = self.state*self.current_player
