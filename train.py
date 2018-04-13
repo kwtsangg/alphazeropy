@@ -147,7 +147,7 @@ class train_pipeline:
       print("No latest model. Keep the current model.")
     else:
       print("Loading latest model '%s/%s' ..." % (self.save_path, latest_model_dir))
-      self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
+      self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir), False)
     return latest_model_no, "%s/%s" % (self.save_path, latest_model_dir)
 
   def get_game_data(self, play_batch_size=1):
