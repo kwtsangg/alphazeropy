@@ -247,12 +247,14 @@ class MCTS_player:
         selected_move_index = np.random.choice(np.arange(len(move)), p=actual_probs)
         selected_move = move[selected_move_index]
         selected_move_probs = actual_probs[selected_move_index]
+        selected_move_value = Q[selected_move_index]
       else:
         #selected_move = np.random.choice(move, p=probs)
         actual_probs = probs
         selected_move_index = np.random.choice(np.arange(len(move)), p=actual_probs)
         selected_move = move[selected_move_index]
         selected_move_probs = actual_probs[selected_move_index]
+        selected_move_value = Q[selected_move_index]
 
       self.MCTS.update_with_move(children_id[selected_move_index])
 
@@ -266,7 +268,7 @@ class MCTS_player:
           else:
             return_probs[imove[0]*Board.width+imove[1]] = iprobs
             return_Q[imove[0]*Board.width+imove[1]]     = iQ
-        return selected_move, return_probs, selected_move_probs, return_Q
+        return selected_move, return_probs, selected_move_probs, return_Q, selected_move_value
       else:
         return selected_move
 

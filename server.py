@@ -96,9 +96,9 @@ class Server:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
       if len(self.Board.history) > temp_trans_after:
-        selected_move, return_probs, selected_move_prob, return_Q = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, temp=1e-3)
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, temp=1e-3)
       else:
-        selected_move, return_probs, selected_move_prob, return_Q = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
 
       # store game state
       feature_input.append(self.Board.get_current_player_feature_box())
@@ -113,6 +113,7 @@ class Server:
         print(return_Q[:-1].reshape(self.Board.height, self.Board.width))
         print("The resultant policy is")
         print(return_probs[:-1].reshape(self.Board.height, self.Board.width))
+        print("The value of the chosen move is       ", selected_move_value)
         print("The probabilty of chosen this move is ", selected_move_prob)
         self.Board.print_state(selected_move)
 
