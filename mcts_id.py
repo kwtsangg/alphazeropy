@@ -198,13 +198,15 @@ class MCTS:
     move        = []
     N_select    = []
     children_id = []
+    Q           = []
     for iter_children_id in self.Tree.nodes[self.Tree.root_id].children_action:
       move.append(self.Tree.nodes[self.Tree.root_id].children_action[iter_children_id])
       N_select.append(self.Tree.nodes[iter_children_id].N_select)
       children_id.append(iter_children_id)
+      Q.append(self.Tree.nodes[iter_children_id].Q)
 
     probs   = softmax(np.log(N_select)/temp + 1e-9)
-    return move, probs, children_id
+    return move, probs, children_id, Q
 
   def update_with_move(self, children_id):
     """
@@ -236,7 +238,7 @@ class MCTS_player:
     temp            = float(kwargs.get('temp', self.temp))
 
     if Board.get_legal_action():
-      move, probs, children_id = self.MCTS.get_move_probability(Board, temp)
+      move, probs, children_id, Q = self.MCTS.get_move_probability(Board, temp)
       if self.is_self_play:
         # add Dirichlet Noise for exploration (needed for self-play training)  
         actual_probs  = probs*(1.-epsilon) + epsilon*np.random.dirichlet(dirichlet_param*np.ones(len(probs)))
@@ -256,12 +258,15 @@ class MCTS_player:
 
       if is_return_probs:
         return_probs = np.zeros(Board.height*Board.width+1)
-        for imove, iprobs in list(zip(move, actual_probs)):
+        return_Q     = np.zeros(Board.height*Board.width+1)
+        for imove, iprobs, iQ in list(zip(move, actual_probs, Q)):
           if imove == "PASS":
             return_probs[-1] = iprobs
+            return_Q[-1]     = iQ
           else:
             return_probs[imove[0]*Board.width+imove[1]] = iprobs
-        return selected_move, return_probs, selected_move_probs
+            return_Q[imove[0]*Board.width+imove[1]]     = iQ
+        return selected_move, return_probs, selected_move_probs, return_Q
       else:
         return selected_move
 
