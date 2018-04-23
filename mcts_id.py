@@ -205,7 +205,11 @@ class MCTS:
       children_id.append(iter_children_id)
       Q.append(self.Tree.nodes[iter_children_id].Q)
 
-    probs   = softmax(np.log(N_select)/temp + 1e-9)
+    if temp:
+      probs = softmax(np.log(N_select)/temp + 1e-9)
+    else:
+      probs = np.zeros(len(N_select))
+      probs[np.argmax(N_select)] = 1.
     return move, probs, children_id, Q
 
   def update_with_move(self, children_id):

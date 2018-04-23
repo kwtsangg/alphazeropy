@@ -96,7 +96,7 @@ class Server:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
       if len(self.Board.history) > temp_trans_after:
-        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, temp=1e-3)
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, temp=0.)
       else:
         selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
 

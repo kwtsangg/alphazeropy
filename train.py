@@ -234,28 +234,33 @@ class train_pipeline:
   def train_on_dir(self):
     if self.load_path is None:
       self.load_latest_model(0)
-    while True:
-      i = 0
-      train_x, train_y_policy, train_y_value = [], [], []
-      for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
-        if gamedata.endswith(".npy"):
-          i += 1
-          print("%5i importing %s" % (i, gamedata))
-          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
-          train_x.extend(state_result_list)
-          train_y_policy.extend(policy_result_list)
-          train_y_value.extend(value_result_list)
-
-      if len(train_x) > self.batch_size:
-        print("Training ...")
-        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
+    try:
+      while True:
+        i = 0
         train_x, train_y_policy, train_y_value = [], [], []
-        print("Saving the trained model ...")
-        self.AI_brain.save_class(name=self.savename, path=self.save_path)
-      else:
-        print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
-      print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
-      time.sleep(self.train_every_mins*60.)
+        for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
+          if gamedata.endswith(".npy"):
+            i += 1
+            print("%5i importing %s" % (i, gamedata))
+            state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
+            train_x.extend(state_result_list)
+            train_y_policy.extend(policy_result_list)
+            train_y_value.extend(value_result_list)
+
+        if len(train_x) > self.batch_size:
+          print("Training ...")
+          self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
+          train_x, train_y_policy, train_y_value = [], [], []
+          print("Saving the trained model ...")
+          self.AI_brain.save_class(name=self.savename, path=self.save_path)
+        else:
+          print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
+        print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
+        time.sleep(self.train_every_mins*60.)
+    except KeyboardInterrupt:
+      print("Saving model ...")
+      self.AI_brain.save_class(name=self.savename, path=self.save_path)
+      pass
       
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ Description=""" To make MCTS by PUCT algorithm
 #===============================================================================
 import numpy as np
 import sys
-sys.setrecursionlimit(1500)
+sys.setrecursionlimit(15000)
 import copy
 
 #===============================================================================
@@ -83,10 +83,10 @@ class TreeNode:
       self.update(leaf_value)
 
     def is_root(self):
-      return self.parent is None
+      return not self.parent
 
     def is_leaf(self):
-      return self.children == {}
+      return not self.children
 
 class MCTS:
   def __init__(self, policy_value_fn, c_puct=10., n_rollout=100):
@@ -139,10 +139,14 @@ class MCTS:
     for i in range(self.n_rollout):
       Board_deepcopy = copy.deepcopy(Board)
       self.rollout(Board_deepcopy)
-    move_N  = [(move, node.N) for move, node in self.root_node.children.items()] # transform a dictionary to tuple
-    move, N = list(zip(*move_N)) # unzip the tuple into move and N
-    probs   = softmax(np.log(N)/temp + 1e-9)
-    return move, probs
+    move_N_Q   = [(move, node.N, node.Q) for move, node in self.root_node.children.items()] # transform a dictionary to tuple
+    move, N, Q = list(zip(*move_N_Q)) # unzip the tuple into move and N
+    if temp:
+      probs = softmax(np.log(N)/temp + 1e-9)
+    else:
+      probs = np.zeros(len(N))
+      probs[np.argmax(N)] = 1.
+    return move, probs, Q
 
   def update_with_move(self, last_move):
     """
@@ -179,8 +183,8 @@ class MCTS_player:
     is_return_probs = kwargs.get('is_return_probs', False)
     temp            = float(kwargs.get('temp', self.temp))
 
-    if len(Board.get_legal_action()) > 0:
-      move, probs = self.MCTS.get_move_probability(Board, temp)
+    if Board.get_legal_action():
+      move, probs, Q = self.MCTS.get_move_probability(Board, temp)
       if self.is_self_play:
         # add Dirichlet Noise for exploration (needed for self-play training)  
         actual_probs  = probs*(1.-epsilon) + epsilon*np.random.dirichlet(dirichlet_param*np.ones(len(probs)))
@@ -200,12 +204,15 @@ class MCTS_player:
 
       if is_return_probs:
         return_probs = np.zeros(Board.height*Board.width+1)
-        for imove, iprobs in list(zip(move, actual_probs)):
+        return_Q     = np.zeros(Board.height*Board.width+1)
+        for imove, iprobs, iQ in list(zip(move, actual_probs, Q)):
           if imove == "PASS":
             return_probs[-1] = iprobs
+            return_Q[-1]     = iQ
           else:
             return_probs[imove[0]*Board.width+imove[1]] = iprobs
-        return selected_move, return_probs, selected_move_probs
+            return_Q[imove[0]*Board.width+imove[1]]     = iQ
+        return selected_move, return_probs, selected_move_probs, return_Q, Q[selected_move_index]
       else:
         return selected_move
 
