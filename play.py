@@ -49,7 +49,7 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p1_brain     = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path, False)
-      self.p1           = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, name="AlphaZero "+self.p1_name)
+      self.p1           = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = False, name="AlphaZero "+self.p1_name)
       print("Overwriting board size according to trained model (player 1) ...")
       self.board_height = self.p1_brain.board_height
       self.board_width  = self.p1_brain.board_width
@@ -68,7 +68,7 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path, False)
-      self.p2           = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, name="AlphaZero "+self.p2_name)
+      self.p2           = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = False, name="AlphaZero "+self.p2_name)
       print("Overwriting board size according to trained model (player 2) ...")
       self.board_height = self.p2_brain.board_height
       self.board_width  = self.p2_brain.board_width
@@ -97,10 +97,10 @@ if __name__ == "__main__":
   parser.add_argument("--board-width",   default=6,        action="store",  type=int,   help="width of the board")
   parser.add_argument("--n-in-row",                        action="store",  type=int,   help="needed if game is gomoku or connectfour")
   # AI brain params
-  parser.add_argument("--p1-temp",       default=1e-6,     action="store",  type=float, help="player1, temperature to control how greedy of selecting next action")
+  parser.add_argument("--p1-temp",       default=0.,       action="store",  type=float, help="player1, temperature to control how greedy of selecting next action")
   parser.add_argument("--p1-n-rollout",  default=400,      action="store",  type=int,   help="player1, number of simulations for each move")
   parser.add_argument("--p1-c-puct",     default=5.,       action="store",  type=float, help="player1, coefficient of controlling the extent of exploration versus exploitation")
-  parser.add_argument("--p2-temp",       default=1e-6,     action="store",  type=float, help="player2, temperature to control how greedy of selecting next action")
+  parser.add_argument("--p2-temp",       default=0.,       action="store",  type=float, help="player2, temperature to control how greedy of selecting next action")
   parser.add_argument("--p2-n-rollout",  default=400,      action="store",  type=int,   help="player2, number of simulations for each move")
   parser.add_argument("--p2-c-puct",     default=5.,       action="store",  type=float, help="player2, coefficient of controlling the extent of exploration versus exploitation")
   # other
