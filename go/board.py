@@ -15,6 +15,7 @@ Description=""" To make a general go game (Tromp–Taylor rules).
 #===============================================================================
 import numpy as np
 np.set_printoptions(precision=2, suppress=True)
+import copy
 
 #===============================================================================
 #  Main
@@ -37,26 +38,21 @@ class Group:
     tmp_Stone = Stone(color)
     tmp_Stone.add(position)
 
-    if ally_Stone_set:
-      # Merge ally Stone
-      for Stone in ally_Stone_set:
-        tmp_Stone.stones = tmp_Stone.stones | Stone.stones
-      tmp_Stone.update_liberties(Board)
-      for position in tmp_Stones.stones:
-        self.stone[position] = tmp_Stones
-    else:
-      # If no ally group
-      self.stone[position] = tmp_Stone
-      self.stone[position].update_liberties(Board)
+    # Merge ally Stone if any
+    for Stone in ally_Stone_set:
+      tmp_Stone.stones = tmp_Stone.stones | Stone.stones
+    tmp_Stone.update_liberties(Board)
+    for pos in tmp_Stones.stones:
+      self.stone[pos] = tmp_Stones
     
     # Update enemy Stone liberties
-    n_capture = 0
+    capture_set = set()
     for Stone in enemy_Stone_set:
       Stone.liberties.remove(position)
       if not Stone.liberties:
-        n_capture += len(Stone.stones)
+        capture_set = capture_set | Stone.stones
         self.delete_group(Stone)
-    return n_capture
+    return capture_set
 
   def check_suicide(self, position, color, Board):
     ally_liberties, enemy_liberties = self.get_liberties(position, color, Board):
@@ -169,6 +165,8 @@ class Board:
     """
     if action is not None:
       last_state = self.state
+      last_group = copy.deepcopy(self.group)
+      last_score = self.score
       self.move(action)
 
     tmp_state = self.state*self.current_player
@@ -185,13 +183,15 @@ class Board:
       if type(legal_action) != str:
         C[legal_action] = 1
 
+    D = self.current_player*self.komi*np.ones(self.height*self.width).reshape(self.height, self.width)
+
     if action is not None:
       self.state = last_state
+      self.group = last_group
+      self.score = last_score
       del self.history[-1]
       # Switch current player
       self.current_player = 1 if self.current_player == -1 else -1
-
-    D = self.current_player*self.komi*np.ones(self.height*self.width).reshape(self.height, self.width)
 
     return np.array([A,B,C,D])
 
@@ -214,6 +214,7 @@ class Board:
         an ordered number [x,y], x:[0,height-1], y:[0,width-1]
     """
     # Take move and record it down
+    capture_position = self.group.add(self.current_player, action, self)
     self.state[action[0]][action[1]] = self.current_player
     self.history.append((action[0], action[1]))
 
