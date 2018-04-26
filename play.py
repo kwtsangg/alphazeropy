@@ -138,7 +138,7 @@ class platform:
       elo_player2 = 0
     elo_player1 = inverse_logistic(elo_player2, prob)
     print("elo_player2 is             %i" % int(elo_player2))
-    print("player1 win rate is        %.2f %%" % prob*100.)
+    print("player1 win rate is        %.2f %%" % (prob*100.))
     print("elo_player1 is found to be %i" % elo_player1)
     if self.p2_brain_path:
       np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header="%s This elo is evaluated against %s" % (datetime.today().strftime('%Y%m%d%H%M'), self.p2_brain_path))
