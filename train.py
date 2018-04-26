@@ -91,7 +91,7 @@ class train_pipeline:
     self.temp_trans_after      = args.temp_trans_after
     self.n_rollout             = args.n_rollout
     self.s_thinking            = args.s_thinking
-    self,use_thinking          = args.use_thinking
+    self.use_thinking          = args.use_thinking
     self.c_puct                = args.c_puct
     self.batch_size            = args.batch_size
     self.epochs                = args.epochs
