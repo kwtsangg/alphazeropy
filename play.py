@@ -108,20 +108,24 @@ class platform:
 
   def start_evaluation(self):
     print("Evaluating ... ")
-    score_player1 = 0
+    score_model_candidate = 0
     for i in range(int(self.evaluate_game/2)):
-      print("%i/%i ..." % (i, self.evaluate_game))
+      print("total fraction of gameplay %i/%i ..." % (i+1, self.evaluate_game))
       winner = self.server.start_game(player1=self.p1, player2=self.p2)
       if winner == 1:
-        score_player1 += 1
-      print("Win rate of player1 is %i/%i" % (score_player1, self.evaluate_game))
+        score_model_candidate += 1
+      elif winner == 0:
+        score_model_candidate += 0.5
+      print("Win rate of the model candidate is %i/%i" % (score_model_candidate, i+1))
     for i in range(int(self.evaluate_game/2)):
-      print("%i/%i ..." % (i+int(self.evaluate_game/2), self.evaluate_game))
+      print("total fraction of gameplay %i/%i ..." % (i+1+int(self.evaluate_game/2), self.evaluate_game))
       winner = self.server.start_game(player1=self.p2, player2=self.p1)
       if winner == 2:
-        score_player1 += 1
-      print("Win rate of player1 is %i/%i" % (score_player1, self.evaluate_game))
-    prob = float(score_player1)/float(self.evaluate_game)
+        score_model_candidate += 1
+      elif winner == 0:
+        score_model_candidate += 0.5
+      print("Win rate of the model candidate is %i/%i" % (score_model_candidate, i+1+int(self.evaluate_game/2)))
+    prob = float(score_model_candidate)/float(self.evaluate_game)
     if prob == 1.:
       print("The evaluation fails because its opponent is too weak.")
       return 0
@@ -130,9 +134,9 @@ class platform:
       elo_player2 = np.loadtxt("%s/elo.txt" % self.p2_brain_path)
     except:
       # In case of random-move player
-      elo_player2 = 0.
+      elo_player2 = 0
     elo_player1 = inverse_logistic(elo_player2, prob)
-    print("elo_player2 is             %i" % elo_player2)
+    print("elo_player2 is             %i" % int(elo_player2))
     print("player1 win rate is        %.2f %%" % prob*100.)
     print("elo_player1 is found to be %i" % elo_player1)
     if self.p2_brain_path:

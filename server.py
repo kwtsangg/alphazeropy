@@ -66,6 +66,7 @@ class Server:
     selected_move = None
 
     if is_shown:
+      print("")
       print("Player 1 is %s" % player1.name)
       print("Player 2 is %s" % player2.name)
       print("")
@@ -121,6 +122,7 @@ class Server:
       self.Board.move(selected_move)
       self.Board.check_winner()
       if is_shown:
+        print("")
         print("The value at the move is")
         print(return_Q[:-1].reshape(self.Board.height, self.Board.width))
         print("The resultant policy is")
