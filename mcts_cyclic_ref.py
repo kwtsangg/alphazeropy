@@ -90,16 +90,19 @@ class TreeNode:
       return not self.children
 
 class MCTS:
-  def __init__(self, policy_value_fn, c_puct=10., n_rollout=100, thinking_time=None):
+  def __init__(self, policy_value_fn, c_puct=10., n_rollout=100, s_thinking=None, use_thinking=False):
     """
       Input:
         policy_value_fn : the predict function in the model class. eg. AlphaZero_Gomoku.predict(,False)
     """
-    self.policy_value_fn = policy_value_fn
-    self.root_node       = TreeNode(None, 1.0)
-    self.c_puct          = float(c_puct)
-    self.n_rollout       = int(n_rollout)
-    self.thinking_time   = thinking_time
+    self.policy_value_fn   = policy_value_fn
+    self.root_node         = TreeNode(None, 1.0)
+    self.c_puct            = float(c_puct)
+    self.n_rollout         = int(n_rollout)
+    self.thinking_time     = thinking_time
+    self.use_thinking_time = use_thinking_time
+    self.s_thinking        = s_thinking
+    self.use_thinking      = use_thinking
 
   def rollout(self, Board):
     """
@@ -138,9 +141,9 @@ class MCTS:
       Output:
         move probability on board
     """
-    if self.thinking_time:
+    if self.use_thinking:
       start_time = time.time()
-      while time.time()-start_time < self.thinking_time:
+      while time.time()-start_time < self.s_thinking:
         Board_deepcopy = copy.deepcopy(Board)
         self.rollout(Board_deepcopy)
     else:
@@ -173,7 +176,7 @@ class MCTS:
     self.root_node = TreeNode(None, 1.0)
 
 class MCTS_player:
-  def __init__(self, policy_value_fn, c_puct = 10., n_rollout = 100, temp = 1., is_self_play = True, name = "", thinking_time = None):
+  def __init__(self, policy_value_fn, c_puct = 10., n_rollout = 100, temp = 1., is_self_play = True, name = "", s_thinking = None, use_thinking = False):
     self.name            = str(name)
     self.token           = None
     self.policy_value_fn = policy_value_fn
@@ -181,8 +184,9 @@ class MCTS_player:
     self.n_rollout       = int(n_rollout)
     self.temp            = float(temp)
     self.is_self_play    = is_self_play
-    self.thinking_time   = thinking_time
-    self.MCTS            = MCTS(self.policy_value_fn, c_puct=self.c_puct, n_rollout=self.n_rollout, thinking_time=self.thinking_time)
+    self.s_thinking      = s_thinking
+    self.use_thinking    = use_thinking
+    self.MCTS            = MCTS(self.policy_value_fn, c_puct=self.c_puct, n_rollout=self.n_rollout, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
 
   def get_move(self, Board, **kwargs):
     """
