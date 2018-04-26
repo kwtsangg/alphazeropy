@@ -40,6 +40,18 @@ class Human:
   def update_opponent_move(self, *args):
     None
 
+class RandomMove:
+  def __init__(self, name=""):
+    self.name  = name
+
+  def get_move(self, Board, **kwargs):
+    legal_action = Board.get_legal_action()
+    index = np.random.choice(np.arange(len(legal_action)))
+    return legal_action[index]
+
+  def update_opponent_move(self, *args):
+    None
+
 class Server:
   def __init__(self, Board):
     self.Board = Board
@@ -74,7 +86,7 @@ class Server:
       else:
         print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
 
-    return self.Board.winner[1]
+    return player_number[self.Board.winner[1]]
 
   def start_self_play(self, AI_player, is_shown = True, temp_trans_after = 30):
     """
@@ -127,5 +139,5 @@ class Server:
       else:
         print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
 
-    return self.Board.winner[1], zip(feature_input, policy, winners_z.reshape(-1,1))
+    return player_number[self.Board.winner[1]], zip(feature_input, policy, winners_z.reshape(-1,1))
 

@@ -20,83 +20,6 @@ import copy
 #===============================================================================
 #  Main
 #===============================================================================
-class Group:
-  def __init__(self):
-    self.stone = {} # a map from stone position to the Stone group.
-
-  def add(self, position, color, Board):
-    """
-      If the move is valid, this function will be called to add the selected move.
-      Output:
-        number of captured stones
-    """
-    # safety check:
-    # if Board.state[position] != 0:
-    #   raise ValueError("The move can be performed on an empty position only.")
-
-    ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(position, color, Board)
-    tmp_Stone = Stone(color)
-    tmp_Stone.add(position)
-
-    # Merge ally Stone if any
-    for Stone in ally_Stone_set:
-      tmp_Stone.stones = tmp_Stone.stones | Stone.stones
-    tmp_Stone.update_liberties(Board)
-    for pos in tmp_Stones.stones:
-      self.stone[pos] = tmp_Stones
-    
-    # Update enemy Stone liberties
-    capture_set = set()
-    for Stone in enemy_Stone_set:
-      Stone.liberties.remove(position)
-      if not Stone.liberties:
-        capture_set = capture_set | Stone.stones
-        self.delete_group(Stone)
-    return capture_set
-
-  def check_suicide(self, position, color, Board):
-    ally_liberties, enemy_liberties = self.get_liberties(position, color, Board):
-    if ally_liberties:
-      return False
-    else:
-      if enemy_liberties:
-        return True
-      else:
-        return False
-    
-  def get_liberties(self, position, color, Board):
-    """
-      if an action on position is taken, get the resultant liberties
-    """
-    ally_liberties  = self.Board._get_liberties(position)
-    enemy_liberties = set()
-    for neighbor in Board._get_neighbor(position):
-      Stone = self.stone.get(neighbor)
-        if Stone: # if it is registered, it means either black or white.
-          if Stone.color == color:
-            ally_liberties  = ally_liberties | Stone.liberties
-          else:
-            enemy_liberties = enemy_liberties | Stone.liberties
-    ally_liberties.remove(position)
-    enemy_liberties.remove(position)
-    return ally_liberties, enemy_liberties
-
-  def get_nearby_Stone(self, position, color, Board):
-    ally_Stone_set  = set()
-    enemy_Stone_set = set()
-    for neighbor in Board._get_neighbor(position):
-      Stone = self.stone.get(neighbor)
-        if Stone: # if it is registered, it means either black or white.
-          if Stone.color == color:
-            ally_Stone_set.add(Stone)
-          else:
-            enemy_Stone_set.add(Stone)
-    return ally_Stone_set, enemy_Stone_set
-
-  def delete_group(self, Stone):
-    for position in Stone.stones:
-      del self.stone[position]
-
 class Stone:
   def __init__(self, color):
     self.stones    = set() # a set of position of stones
@@ -135,9 +58,10 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.score            = {1:0, -1:self.komi}
     self.current_player   = 1
-    self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    self.group            = Group()
     self.n_pass_disable   = 0 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
+    self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
+
+    self.group = {} # a map from stone position to the Stone group.
 
   def get_legal_action(self):
     """
@@ -214,16 +138,12 @@ class Board:
         an ordered number [x,y], x:[0,height-1], y:[0,width-1]
     """
     # Take move and record it down
-    capture_position = self.group.add(self.current_player, action, self)
+    capture_position = self.add(self.current_player, action, self)
+    for pos in capture_position:
+      self.state[pos] = 0
     self.state[action[0]][action[1]] = self.current_player
     self.history.append((action[0], action[1]))
 
-    # Switch current player
-    self.current_player = 1 if self.current_player == -1 else -1
-
-  def undo_move(self, action):
-    self.state[action[0]][action[1]] = 0
-    del self.history[-1]
     # Switch current player
     self.current_player = 1 if self.current_player == -1 else -1
 
@@ -231,37 +151,15 @@ class Board:
     """
       Using the last move to check whether the game has a winner
     """
-    if len(self.history) > 0:
-      last_move       = self.history[-1]
-      last_player     = self.get_last_player()
-
-      connected_token = last_player*self.n_in_row
-      # check for row
-      if connected_token in [sum(self.state[last_move[0]][j:j+self.n_in_row]) for j in range(0, self.width-self.n_in_row+1, 1)]:
-        self.winner = [True, last_player]
-        return self.winner
-
-      # check for column
-      if connected_token in [sum(self.state.T[last_move[1]][i:i+self.n_in_row]) for i in range(0, self.height-self.n_in_row+1, 1)]:
-        self.winner = [True, last_player]
-        return self.winner
-
-      # check for diagonal with slope 1
-      diagonal = np.diag(self.state, last_move[1]-last_move[0])
-      if connected_token in [sum(diagonal[i:i+self.n_in_row]) for i in range(0, len(diagonal)-self.n_in_row+1, 1)]:
-        self.winner = [True, last_player]
-        return self.winner
-
-      # check for diagonal with slope -1
-      diagonal = np.diag(self.state[:,::-1], self.width-1-last_move[1]-last_move[0])
-      if connected_token in [sum(diagonal[i:i+self.n_in_row]) for i in range(0, len(diagonal)-self.n_in_row+1, 1)]:
-        self.winner = [True, last_player]
-        return self.winner
-
-      # check for draw game
-      if len(np.argwhere(self.state==0)) == 0:
-        self.winner = [True, 0]
-        return self.winner
+    if len(self.history) > 1:
+      if type(self.history[-1]) == str and type(self.history[-2]) == str:
+        final_score = np.sum(self.state)
+        if final_score > 0:
+          self.winner = [True, 1]
+        elif final_score < 0:
+          self.winner = [True, -1]
+        else:
+          self.winner = [True, 0]
     return self.winner
 
   def print_state(self, selected_move = None):
@@ -290,10 +188,91 @@ class Board:
     self.state          = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.history        = []
     self.winner         = [False, 0]
+    self.score          = {1:0, -1:self.komi}
+    self.group          = {}
 
   def _is_move_legal(self, x, y):
     if not suicide or ko
       
+  #================================================================
+  # Group function
+  #================================================================
+  
+  def add(self, position):
+    """
+      Assumed the move is valid, this function will be called to add the selected move.
+      Output:
+        number of captured stones
+    """
+    # safety check:
+    # if self.state[position] != 0:
+    #   raise ValueError("The move can be performed on an empty position only.")
+
+    ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(position)
+    tmp_Stone = Stone(self.current_player)
+    tmp_Stone.add(position)
+
+    # Merge ally Stone if any
+    for Stone in ally_Stone_set:
+      tmp_Stone.stones = tmp_Stone.stones | Stone.stones
+    tmp_Stone.update_liberties()
+    for pos in tmp_Stones.stones:
+      self.stone[pos] = tmp_Stones
+    
+    # Update enemy Stone liberties
+    capture_set = set()
+    for Stone in enemy_Stone_set:
+      Stone.liberties.remove(position)
+      if not Stone.liberties:
+        capture_set = capture_set | Stone.stones
+        self.delete_group(Stone)
+    return capture_set
+
+  def check_suicide(self, position, color, Board):
+    ally_liberties, enemy_liberties = self.get_liberties(position, color, Board):
+    if ally_liberties:
+      return False
+    else:
+      if enemy_liberties:
+        return True
+      else:
+        return False
+
+  def check_simple_ko(self, position, Board):
+    
+  def get_liberties(self, position, color, Board):
+    """
+      if an action on position is taken, get the resultant liberties
+    """
+    ally_liberties  = self.Board._get_liberties(position)
+    enemy_liberties = set()
+    for neighbor in Board._get_neighbor(position):
+      Stone = self.stone.get(neighbor)
+        if Stone: # if it is registered, it means either black or white.
+          if Stone.color == color:
+            ally_liberties  = ally_liberties | Stone.liberties
+          else:
+            enemy_liberties = enemy_liberties | Stone.liberties
+    ally_liberties.remove(position)
+    enemy_liberties.remove(position)
+    return ally_liberties, enemy_liberties
+
+  def get_nearby_Stone(self, position, color, Board):
+    ally_Stone_set  = set()
+    enemy_Stone_set = set()
+    for neighbor in Board._get_neighbor(position):
+      Stone = self.stone.get(neighbor)
+        if Stone: # if it is registered, it means either black or white.
+          if Stone.color == color:
+            ally_Stone_set.add(Stone)
+          else:
+            enemy_Stone_set.add(Stone)
+    return ally_Stone_set, enemy_Stone_set
+
+  def delete_group(self, Stone):
+    for position in Stone.stones:
+      del self.stone[position]
+
   def _get_neighbor(self, position):
     neighbor = set()
     for i, j in [ [0,-1], [0,1], [1,0], [-1,0] ]:

@@ -15,6 +15,7 @@ Description=""" To make MCTS by PUCT algorithm
 import numpy as np
 import math
 import copy
+import time
 
 #===============================================================================
 #  Functions
@@ -139,7 +140,7 @@ class TreeNode:
     return not self.children_action # self.children_action == {}
 
 class MCTS:
-  def __init__(self, policy_value_fn, c_puct=10., n_rollout=100):
+  def __init__(self, policy_value_fn, c_puct=10., n_rollout=100, thinking_time=None):
     """
       Input:
         policy_value_fn : the predict function in the model class. eg. AlphaZero_Gomoku.predict(,False)
@@ -148,6 +149,7 @@ class MCTS:
     self.Tree                = Tree()
     self.c_puct              = float(c_puct)
     self.n_rollout           = int(n_rollout)
+    self.thinking_time       = thinking_time
 
   def rollout(self, Board):
     """
@@ -191,9 +193,15 @@ class MCTS:
       self.Tree.nodes[root_id] = TreeNode()
     self.Tree.root_id = root_id
 
-    for i in range(self.n_rollout):
-      Board_deepcopy = copy.deepcopy(Board)
-      self.rollout(Board_deepcopy)
+    if self.thinking_time:
+      start_time = time.time()
+      while time.time()-start_time < self.thinking_time:
+        Board_deepcopy = copy.deepcopy(Board)
+        self.rollout(Board_deepcopy)
+    else:
+      for i in range(self.n_rollout):
+        Board_deepcopy = copy.deepcopy(Board)
+        self.rollout(Board_deepcopy)
 
     move        = []
     N_select    = []
@@ -223,14 +231,15 @@ class MCTS:
     self.Tree.reset()
 
 class MCTS_player:
-  def __init__(self, policy_value_fn, c_puct = 10., n_rollout = 100, temp = 1., is_self_play = True, name = ""):
+  def __init__(self, policy_value_fn, c_puct = 10., n_rollout = 100, temp = 1., is_self_play = True, name = "", thinking_time = None):
     self.name            = str(name)
     self.policy_value_fn = policy_value_fn
     self.c_puct          = float(c_puct)
     self.n_rollout       = int(n_rollout)
     self.temp            = float(temp)
     self.is_self_play    = is_self_play
-    self.MCTS            = MCTS(self.policy_value_fn, c_puct=self.c_puct, n_rollout=self.n_rollout)
+    self.thinking_time   = thinking_time
+    self.MCTS            = MCTS(self.policy_value_fn, c_puct=self.c_puct, n_rollout=self.n_rollout, thinking_time=self.thinking_time)
 
   def get_move(self, Board, **kwargs):
     """
