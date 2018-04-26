@@ -15,6 +15,7 @@ Description=""" A platform to play or evaluate games.
 import numpy as np
 import sys
 import argparse, textwrap
+from datetime import datetime
 
 from server import Server, Human, RandomMove
 
@@ -140,9 +141,9 @@ class platform:
     print("player1 win rate is        %.2f %%" % prob*100.)
     print("elo_player1 is found to be %i" % elo_player1)
     if self.p2_brain_path:
-      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header="This elo is evaluated against %s" % self.p2_brain_path)
+      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header="%s This elo is evaluated against %s" % (datetime.today().strftime('%Y%m%d%H%M'), self.p2_brain_path))
     else:
-      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header="This elo is evaluated against a random-move player (elo = 0).")
+      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header="%s This elo is evaluated against a random-move player (elo = 0)." % datetime.today().strftime('%Y%m%d%H%M'))
     return elo_player1
 
 if __name__ == "__main__":
