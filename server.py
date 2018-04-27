@@ -62,7 +62,7 @@ class Server:
     """
     self.Board.reset()
     player        = {1: player1, -1: player2}
-    player_number = {1:1, -1:2}
+    player_number = {1:1, -1:2, 0:0}
     selected_move = None
 
     if is_shown:
@@ -101,7 +101,7 @@ class Server:
 
     # info
     player        = {1: AI_player, -1: AI_player}
-    player_number = {1:1, -1:2}
+    player_number = {1:1, -1:2, 0:0}
     selected_move = None
 
     feature_input, policy, current_players = [], [], []
