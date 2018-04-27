@@ -25,8 +25,29 @@ from keras.layers import Activation, BatchNormalization, Dense, Flatten, Input
 from keras.layers import add
 from keras.layers.convolutional import Conv2D
 from keras import optimizers, regularizers
+from keras.callbacks import LearningRateScheduler
 from keras import backend as K
 K.set_image_dim_ordering("tf")
+
+#================================================================
+# Function
+#================================================================
+def lr_scheduler_wrapper(lr_i, lr_f, total_epochs, mode="linear"):
+  if lr_i == lr_f:
+    def lr_scheduler(epochs):
+      return lr_i
+    return lr_scheduler
+  elif mode == "linear":
+    def lr_scheduler(epochs):
+      return lr_i + (lr_f-lr_i)/total_epochs*epochs
+    return lr_scheduler
+  elif mode == "exp":
+    alpha = np.log(lr_f/lr_i)/total_epochs
+    def lr_scheduler(epochs):
+      return lr_i*np.exp(alpha*epochs)
+    return lr_scheduler
+  else:
+    print("input mode (%s) is not supported." % mode)
 
 #===============================================================================
 #  Main
@@ -101,7 +122,6 @@ class AlphaZero:
     y = Activation('relu')(y)
     y = Flatten()(y)
     y = Dense(self.board_height*self.board_width + 1, kernel_regularizer=regularizers.l2(self.l2_regularization), activation='softmax', name='policy_out')(y) # all board positions + PASS move
-#    y = Activation('softmax')(y)
     return y
  
   def _build_value_block(self, x):
@@ -112,7 +132,6 @@ class AlphaZero:
     y = Activation('relu')(y)
     y = Flatten()(y)
     y = Dense(1, kernel_regularizer=regularizers.l2(self.l2_regularization), activation='tanh', name='value_out')(y)
-#    y = Activation('tanh')(y)
     return y
 
   def predict(self, feature_4Dbox, raw_output = True):
@@ -136,32 +155,21 @@ class AlphaZero:
       value                 = policy_value[1].flatten()
       return list(zip(policy_without_pass, policy_with_only_pass, value))
 
-  def train(self, Board_state_array, policy_value_array, optimizer="adam", learning_rate=1e-2, learning_momentum=0.9, epochs=10, batch_size=512):
-    # this part is needed to avoid tensorflow memory leak due to multiple model compile
-    is_new_optimizer_needed = False
+  def train(self, Board_state_array, policy_value_array, learning_rate=1e-1, learning_rate_f=None, epochs=100, batch_size=512):
+    if learning_rate_f is None:
+      learning_rate_f = learning_rate
     try:
-      if self.optimizer != optimizer or self.learning_rate != learning_rate or self.learning_momentum != learning_momentum:
-        self.optimizer          = optimizer
-        self.learning_rate      = learning_rate
-        self.learning_momentum  = learning_momentum
-        is_new_optimizer_needed = True
+      self.first_train_loop
     except AttributeError:
-      self.optimizer         = optimizer
-      self.learning_rate     = learning_rate
-      self.learning_momentum = learning_momentum
-      is_new_optimizer_needed = True
+      self.first_train_loop = True
 
-    if is_new_optimizer_needed:
-      if self.optimizer == "adam":
-        myoptimizer = optimizers.Adam(lr=self.learning_rate)
-      elif self.optimizer == "sgd":
-        myoptimizer = optimizers.SGD(lr=self.learning_rate, momentum=self.learning_momentum)
-      else:
-        print("WARNING: optimizer %s is not supported. Using adam ..." % optimizer)
-        myoptimizer = optimizers.Adam(lr=self.learning_rate)
+    if self.first_train_loop:
+      myoptimizer = optimizers.Adam(lr=learning_rate)
       self.model.compile(loss={'policy_out': 'kullback_leibler_divergence', 'value_out': 'mean_squared_error'}, optimizer=myoptimizer)
+      self.lrate = LearningRateScheduler(lr_scheduler_wrapper(learning_rate, learning_rate_f, epochs, mode="exp"), verbose="1")
+      self.first_train_loop = False
     # actual model fit
-    self.model.fit(Board_state_array, policy_value_array, epochs=epochs, batch_size=batch_size, verbose=1)
+    self.model.fit(Board_state_array, policy_value_array, epochs=epochs, batch_size=batch_size, callbacks=[self.lrate], verbose=1)
 
   def save_class(self, name, **kwargs):
     """
@@ -218,5 +226,4 @@ class AlphaZero:
     self.n_res_blocks      = save_dict["n_res_blocks"]     
     self.l2_regularization = save_dict["l2_regularization"]
     self.bn_axis           = save_dict["bn_axis"]          
-
 

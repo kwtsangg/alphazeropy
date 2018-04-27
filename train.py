@@ -85,9 +85,8 @@ class train_pipeline:
       self.AI_brain.load_class(self.load_path)
 
     # training params 
-    self.optimizer             = args.optimizer
     self.learning_rate         = args.learning_rate
-    self.learning_momentum     = args.learning_momentum
+    self.learning_rate_f       = args.learning_rate_f
     self.temp                  = args.temp
     self.temp_trans_after      = args.temp_trans_after
     self.n_rollout             = args.n_rollout
@@ -123,7 +122,7 @@ class train_pipeline:
           raise ValueError("Please specify where the directory storing the game data by --train-on-game-data-dir")
 
   #===============================#
-  # Train pipeline 
+  # Other functions
   #===============================#
 
   def load_latest_model(self, current_model_no):
@@ -209,58 +208,57 @@ class train_pipeline:
           value_result_list.append( value )
     return state_result_list, policy_result_list, value_result_list
 
+  #================================================================
+  # Training function
+  #================================================================
+
   def train(self):
-    try:
-      train_x, train_y_policy, train_y_value = [], [], []
-      for i in range(self.play_batch_size):
-        print("%i/%i" % (i, self.play_batch_size))
-        state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
-        train_x.extend(state_result_list)
-        train_y_policy.extend(policy_result_list)
-        train_y_value.extend(value_result_list)
+    """
+      Generating gamedata until certin amount, and then train on those gamedata.
+      This function should be obsolete.
+    """
+    train_x, train_y_policy, train_y_value = [], [], []
+    for i in range(self.play_batch_size):
+      print("%i/%i" % (i, self.play_batch_size))
+      state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
+      train_x.extend(state_result_list)
+      train_y_policy.extend(policy_result_list)
+      train_y_value.extend(value_result_list)
 
-        if len(train_x) > self.batch_size:
-          print("Training ...")
-          self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
-          train_x, train_y_policy, train_y_value = [], [], []
+      if len(train_x) > self.batch_size:
+        print("Training ...")
+        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
+        train_x, train_y_policy, train_y_value = [], [], []
 
       self.AI_brain.save_class(name=self.savename, path=self.save_path)
-    except KeyboardInterrupt:
-      print("Saving model ...")
-      self.AI_brain.save_class(name=self.savename, path=self.save_path)
-      pass
 
   def train_on_dir(self):
-    if self.load_path is None:
-      self.load_latest_model(0)
-    try:
-      while True:
-        i = 0
-        train_x, train_y_policy, train_y_value = [], [], []
-        for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
-          if gamedata.endswith(".npy"):
-            i += 1
-            print("%5i importing %s" % (i, gamedata))
-            state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
-            train_x.extend(state_result_list)
-            train_y_policy.extend(policy_result_list)
-            train_y_value.extend(value_result_list)
+    while True:
+      i = 0
+      train_x, train_y_policy, train_y_value = [], [], []
+      for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
+        if gamedata.endswith(".npy"):
+          i += 1
+          print("%5i importing %s" % (i, gamedata))
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
+          train_x.extend(state_result_list)
+          train_y_policy.extend(policy_result_list)
+          train_y_value.extend(value_result_list)
 
-        if len(train_x) > self.batch_size:
-          print("Training ...")
-          self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], optimizer=self.optimizer, learning_rate=self.learning_rate, learning_momentum=self.learning_momentum, epochs=self.epochs, batch_size=self.batch_size)
-          train_x, train_y_policy, train_y_value = [], [], []
-          print("Saving the trained model ...")
-          self.AI_brain.save_class(name=self.savename, path=self.save_path)
-        else:
-          print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
-        print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
-        time.sleep(self.train_every_mins*60.)
-    except KeyboardInterrupt:
-#      print("Saving model ...")
-#      self.AI_brain.save_class(name=self.savename, path=self.save_path)
-      pass
-      
+      if len(train_x) > self.batch_size:
+        print("Training ...")
+        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
+        train_x, train_y_policy, train_y_value = [], [], []
+        print("Saving the trained model ...")
+        self.AI_brain.save_class(name=self.savename, path=self.save_path)
+      else:
+        print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
+      print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
+      time.sleep(self.train_every_mins*60.)
+
+#================================================================
+# Footer
+#================================================================
 
 if __name__ == "__main__":
   class CustomFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
@@ -284,7 +282,7 @@ if __name__ == "__main__":
   # training params 
   parser.add_argument("--optimizer",           default="adam",      action="store",            type=str,   help="method of gradient descent (adam or sgd)")
   parser.add_argument("--learning-rate",       default=1e-3,        action="store",            type=float, help="learning rate")
-  parser.add_argument("--learning-momentum",   default=0.9,         action="store",            type=float, help="learning momentum of sgd")
+  parser.add_argument("--learning-rate-f",                          action="store",            type=float, help="final learning rate. If specify, exponential decay of learning rate is used.")
   parser.add_argument("--temp",                default=1.,          action="store",            type=float, help="temperature to control how greedy of selecting next action")
   parser.add_argument("--temp-trans-after",    default=20,          action="store",            type=int,   help="after this number of moves, the temperature becomes 0.")
   parser.add_argument("--n-rollout",           default=400,         action="store",            type=int,   help="number of simulations for each move")
