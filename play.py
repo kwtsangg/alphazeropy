@@ -61,6 +61,9 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p1_brain = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path, False)
+      self.p1_name = self.p1_brain_path.split("/")[-1]
+      if not self.p1_name:
+        self.p1_name = self.p1_brain_path.split("/")[-2]
       self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = False, name="AlphaZero "+self.p1_name, s_thinking=self.p1_s_thinking, use_thinking=self.p1_use_thinking)
       print("Overwriting board size according to trained model (player 1) ...")
       self.board_height = self.p1_brain.board_height
@@ -85,6 +88,9 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path, False)
+      self.p2_name = self.p2_brain_path.split("/")[-1]
+      if not self.p2_name:
+        self.p2_name = self.p2_brain_path.split("/")[-2]
       self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = False, name="AlphaZero "+self.p2_name, s_thinking=self.p2_s_thinking, use_thinking=self.p2_use_thinking)
       print("Overwriting board size according to trained model (player 2) ...")
       self.board_height = self.p2_brain.board_height
