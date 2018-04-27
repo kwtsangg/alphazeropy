@@ -125,13 +125,36 @@ class MCTS:
       else:
         leaf_value = 1. if Board.winner[1] == Board.current_player else -1.
     else:
-      policy_value    = self.policy_value_fn(np.array([Board.get_current_player_feature_box()]), raw_output = False)
-      policy          = policy_value[0][:-1]
+      # a random dihedral transformation is performed before feeding into AlphaZero
+      rotation_order   = np.random.choice(Board.rotation_symmetry)
+      reflection_order = np.random.choice(Board.reflection_symmetry)
+      feature_box      = Board.get_current_player_feature_box()
+      for i in range(len(feature_box)):
+        feature_box[i] = self.dihedral_transformation(feature_box[i], rotation_order, reflection_order)
+      policy_value    = self.policy_value_fn(np.array([feature_box]), raw_output = False)
+      policy          = list(policy_value[0][:-1])
+      policy[0]       = self.dihedral_transformation(policy[0], rotation_order, reflection_order, inverse=True)
       leaf_value      = policy_value[0][-1]
       node.expand(policy, Board.get_legal_action())
 
     # Update the leaf and its ancestors
     node.update_parent_recursively(-leaf_value)
+
+  def dihedral_transformation(self, feature_plane, rotation_order, reflection_order, inverse=False):
+    """
+      rotation and reflection are not commutative. Here I decided to first perform reflection.
+    """
+    if not inverse:
+      if reflection_order:
+        result = np.rot90(np.fliplr(feature_plane), rotation_order)
+      else:
+        result = np.rot90(feature_plane, rotation_order)
+    else:
+      if reflection_order:
+        result = np.fliplr(np.rot90(feature_plane, -rotation_order))
+      else:
+        result = np.rot90(feature_plane, -rotation_order)
+    return result
 
   def get_move_probability(self, Board, temp=1.):
     """

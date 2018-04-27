@@ -39,6 +39,8 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
+    self.rotation_symmetry   = [0]
+    self.reflection_symmetry = [0, 1]
 
     # sanity check
     if self.width < self.n_in_row or self.height < self.n_in_row:

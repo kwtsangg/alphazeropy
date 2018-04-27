@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function # to prevent Py2 from interpreting it as a tuple
 __file__       = "play.py"
 __author__     = "Ka Wa Tsang"
 __copyright__  = "Copyright 2018"
@@ -60,10 +61,7 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p1_brain = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path, False)
-      if self.evaluate:
-        self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = True, name="AlphaZero "+self.p1_name, s_thinking=self.p1_s_thinking, use_thinking=self.p1_use_thinking)
-      else:
-        self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = False, name="AlphaZero "+self.p1_name, s_thinking=self.p1_s_thinking, use_thinking=self.p1_use_thinking)
+      self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = False, name="AlphaZero "+self.p1_name, s_thinking=self.p1_s_thinking, use_thinking=self.p1_use_thinking)
       print("Overwriting board size according to trained model (player 1) ...")
       self.board_height = self.p1_brain.board_height
       self.board_width  = self.p1_brain.board_width
@@ -87,10 +85,7 @@ class platform:
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path, False)
-      if self.evaluate:
-        self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = True, name="AlphaZero "+self.p2_name, s_thinking=self.p2_s_thinking, use_thinking=self.p2_use_thinking)
-      else:
-        self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = False, name="AlphaZero "+self.p2_name, s_thinking=self.p2_s_thinking, use_thinking=self.p2_use_thinking)
+      self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = False, name="AlphaZero "+self.p2_name, s_thinking=self.p2_s_thinking, use_thinking=self.p2_use_thinking)
       print("Overwriting board size according to trained model (player 2) ...")
       self.board_height = self.p2_brain.board_height
       self.board_width  = self.p2_brain.board_width

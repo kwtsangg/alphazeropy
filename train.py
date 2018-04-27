@@ -10,15 +10,16 @@ __date__       = "2018-Feb-15"
 Description="""
   To train my AI.
   Example:
-      python train.py --game gomoku --n-in-row 5 --board-height 9 --board-width 9 --reflection-symmetry
-      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --reflection-symmetry --rotation-symmetry 0
-      python train.py --game reversi --board-height 8 --board-width 8 --reflection-symmetry
+      python train.py --game gomoku --n-in-row 5 --board-height 9 --board-width 9
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7
+      python train.py --game reversi --board-height 8 --board-width 8
 
   For game data generation only,
       add --save-path PATH --generate-game-data-only
   For training only,
       add --load-path PATH --save-path PATH --train-on-gama-data-only
       in save-path, the path contains the trained model and the game data directory
+      if --load-path is missing, the script will try to load the newest model in --save-path
 """
 
 #===============================================================================
@@ -101,10 +102,6 @@ class train_pipeline:
 
     # other training params
     self.play_batch_size             = args.play_batch_size
-    self.rotation_symmetry           = args.rotation_symmetry
-    if not 0 in self.rotation_symmetry:
-      self.rotation_symmetry.append(0)
-    self.reflection_symmetry         = args.reflection_symmetry
 
     # other options
     self.generate_game_data_only = args.generate_game_data_only
@@ -193,7 +190,7 @@ class train_pipeline:
 
       n_feature_plane, height, width = state.shape
 
-      for i in self.rotation_symmetry:
+      for i in self.Board.rotation_symmetry:
         # rotate the state to generate new game data set
         for j in range(n_feature_plane):
           state[j] = np.rot90(state[j], i)
@@ -203,7 +200,7 @@ class train_pipeline:
         value_result_list.append( value )
 
         # reflect the state horizontally before rotation
-        if self.reflection_symmetry:
+        if 1. in self.Board.reflection_symmetry:
           for j in range(n_feature_plane):
             state[j] = np.rot90(np.fliplr(state[j]), i)
           state_result_list.append( state )
@@ -298,8 +295,6 @@ if __name__ == "__main__":
   parser.add_argument("--epochs",              default=50,          action="store",            type=int,   help="number of training steps for each gradient descent update")
   # other training params
   parser.add_argument("--play-batch-size",     default=5000,        action="store",            type=int,   help="number of games generated in each calling")
-  parser.add_argument("--rotation-symmetry",   default=[0,1,2,3],   action="store", nargs="+", type=int,   help="rotational symmetry (anti-clockwise), 0 = no rotation, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg")
-  parser.add_argument("--reflection-symmetry", default=False,       action="store_true",                   help="make use of reflection symmetry to generate more game data ")
   # other
   parser.add_argument("--generate-game-data-only", default=False,   action="store_true",                   help="generate game data only without training")
   parser.add_argument("--generate-game-data-dir",                   action="store",            type=str,   help="directory path to save the generated game data (only generation, no training)")
