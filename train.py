@@ -257,8 +257,8 @@ class train_pipeline:
         print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
         time.sleep(self.train_every_mins*60.)
     except KeyboardInterrupt:
-      print("Saving model ...")
-      self.AI_brain.save_class(name=self.savename, path=self.save_path)
+#      print("Saving model ...")
+#      self.AI_brain.save_class(name=self.savename, path=self.save_path)
       pass
       
 
