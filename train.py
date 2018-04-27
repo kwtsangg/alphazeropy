@@ -17,9 +17,9 @@ Description="""
   For game data generation only,
       add --save-path PATH --generate-game-data-only
   For training only,
-      add --load-path PATH --save-path PATH --train-on-gama-data-only
-      in save-path, the path contains the trained model and the game data directory
-      if --load-path is missing, the script will try to load the newest model in --save-path
+      add --save-path PATH --train-on-gama-data-only
+        in save-path, the path contains the trained model and the game data directory
+      add --load-path PATH to locate the latest model
 """
 
 #===============================================================================
