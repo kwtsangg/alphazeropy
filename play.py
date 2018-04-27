@@ -107,24 +107,39 @@ class platform:
 
   def start_evaluation(self):
     print("Evaluating ... ")
-    score_model_candidate = 0
+    model_candidate = {}
+    model_candidate["win"]  = 0.
+    model_candidate["draw"] = 0.
+    model_candidate["lose"] = 0.
+
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1, self.evaluate_game))
       winner = self.server.start_game(player1=self.p1, player2=self.p2)
       if winner == 1:
-        score_model_candidate += 1
+        model_candidate["win"] += 1.
       elif winner == 0:
-        score_model_candidate += 0.5
-      print("Win rate of the model candidate is %i/%i" % (score_model_candidate, i+1))
+        model_candidate["draw"] += 1.
+      else:
+        model_candidate["lose"] += 1.
+      print("# gameplay = %i" % (i+1))
+      print("       win = %i" % model_candidate["win"])
+      print("      draw = %i" % model_candidate["draw"])
+      print("      lose = %i" % model_candidate["lose"])
+
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1+int(self.evaluate_game/2), self.evaluate_game))
       winner = self.server.start_game(player1=self.p2, player2=self.p1)
       if winner == 2:
-        score_model_candidate += 1
+        model_candidate["win"] += 1.
       elif winner == 0:
-        score_model_candidate += 0.5
-      print("Win rate of the model candidate is %i/%i" % (score_model_candidate, i+1+int(self.evaluate_game/2)))
-    prob = float(score_model_candidate)/float(self.evaluate_game)
+        model_candidate["draw"] += 1.
+      else:
+        model_candidate["lose"] += 1.
+      print("# gameplay = %i" % (i+1+int(self.evaluate_game/2)))
+      print("       win = %i" % model_candidate["win"])
+      print("      draw = %i" % model_candidate["draw"])
+      print("      lose = %i" % model_candidate["lose"])
+    prob = (model_candidate["win"] + 0.5*model_candidate["draw"])/float(self.evaluate_game)
     if prob == 1.:
       print("The evaluation fails because its opponent is too weak.")
       return 0
