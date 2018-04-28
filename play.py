@@ -27,7 +27,7 @@ def inverse_logistic(b, P, c_elo=1./400.):
   """
     get the elo of player b given the elo of player a and the probability of (a defeats b)
   """
-  return int(b-np.log10(1./P-1.)/c_elo)
+  return int(b-np.log(1./P-1.)/c_elo)
 
 class platform:
   def __init__(self, args):
