@@ -88,7 +88,6 @@ class train_pipeline:
     self.learning_rate         = args.learning_rate
     self.learning_rate_f       = args.learning_rate_f
     self.temp                  = args.temp
-    self.temp_trans_after      = args.temp_trans_after
     self.n_rollout             = args.n_rollout
     self.s_thinking            = args.s_thinking
     self.use_thinking          = args.use_thinking
@@ -153,7 +152,7 @@ class train_pipeline:
     policy_result_list = []
     value_result_list  = []
     for i in range(play_batch_size):
-      game_data_output = self.server.start_self_play(self.AI_player, is_shown=True, temp_trans_after=self.temp_trans_after)[1]
+      game_data_output = self.server.start_self_play(self.AI_player, is_shown=True)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
       state_result_list.extend(state_list)
       policy_result_list.extend(policy_list)
@@ -168,7 +167,7 @@ class train_pipeline:
       if latest_model_no > current_model_no:
         current_model_no = latest_model_no
       print("Generating game data ...")
-      game_data_output = self.server.start_self_play(self.AI_player, is_shown=True, temp_trans_after=self.temp_trans_after)[1]
+      game_data_output = self.server.start_self_play(self.AI_player, is_shown=True)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
       np.save("%s/%s_%s_%s_model_%s.npy" % (self.generate_game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), current_model_no), list(zip(state_list, policy_list, value_list)))
 
@@ -284,7 +283,6 @@ if __name__ == "__main__":
   parser.add_argument("--learning-rate",       default=1e-3,        action="store",            type=float, help="learning rate")
   parser.add_argument("--learning-rate-f",                          action="store",            type=float, help="final learning rate. If specify, exponential decay of learning rate is used.")
   parser.add_argument("--temp",                default=1.,          action="store",            type=float, help="temperature to control how greedy of selecting next action")
-  parser.add_argument("--temp-trans-after",    default=20,          action="store",            type=int,   help="after this number of moves, the temperature becomes 0.")
   parser.add_argument("--n-rollout",           default=400,         action="store",            type=int,   help="number of simulations for each move")
   parser.add_argument("--s-thinking",          default=1,           action="store",            type=int,   help="time allowed to think for each move (in seconds)")
   parser.add_argument("--use-thinking",        default=False,       action="store_true",                   help="use thinking time instead of n_rollouts")

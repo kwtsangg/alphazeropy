@@ -89,7 +89,7 @@ class Server:
 
     return player_number[self.Board.winner[1]]
 
-  def start_self_play(self, AI_player, is_shown = True, temp_trans_after = 30):
+  def start_self_play(self, AI_player, is_shown = True):
     """
       Start a self-play game using 1 MCTS player.
       Use the same search tree for both player(s).
@@ -108,10 +108,7 @@ class Server:
     if is_shown:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
-      if len(self.Board.history) > temp_trans_after:
-        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, temp=0.)
-      else:
-        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
+      selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
 
       # store game state
       feature_input.append(self.Board.get_current_player_feature_box())
