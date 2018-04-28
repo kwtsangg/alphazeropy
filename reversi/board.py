@@ -42,11 +42,8 @@ class Board:
     self.state[self.height/2-1][self.width/2  ] = -1
     self.state[self.height/2  ][self.width/2-1] = -1
     self.state[self.height/2  ][self.width/2  ] =  1
-    if self.width == self.height:
-      self.rotation_symmetry = [0, 1, 2, 3]
-    else:
-      self.rotation_symmetry = [0, 2]
-    self.reflection_symmetry = [0, 1]
+    self.rotation_symmetry   = [0, 2]
+    self.reflection_symmetry = [0]
 
     # sanity check
     if self.width % 2 != 0 or self.height % 2 != 0:
