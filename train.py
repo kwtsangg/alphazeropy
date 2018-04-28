@@ -14,6 +14,9 @@ Description="""
       python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7
       python train.py --game reversi --board-height 8 --board-width 8
 
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --n-rollout 400 --save-path $PWD/connectfour_training_model/ --c-puct 5 --generate-game-data-only
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --batch-size 1024 --save-path $PWD/connectfour_training_model/ --load-path $PWD/connectfour_training_model/201804281926_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_64 --epochs 200 --learning-rate 1e-2 --train-on-game-data-only --train-on-last-n-sets 5000
+
   For game data generation only,
       add --save-path PATH --generate-game-data-only
   For training only,
