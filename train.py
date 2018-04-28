@@ -219,6 +219,7 @@ class train_pipeline:
       Generating gamedata until certin amount, and then train on those gamedata.
       This function should be obsolete.
     """
+#    self.AI_brain.save_class(name=self.savename, path=self.save_path)
     train_x, train_y_policy, train_y_value = [], [], []
     for i in range(self.play_batch_size):
       print("%i/%i" % (i, self.play_batch_size))
