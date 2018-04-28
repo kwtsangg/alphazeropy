@@ -152,7 +152,7 @@ class MCTS:
     self.s_thinking      = s_thinking
     self.use_thinking    = use_thinking
 
-  def rollout(self, Board):
+  def rollout(self, Board, epsilon=0.25, dirichlet_param=0.1):
     """
       a rollout from the root node to the leaf node (may or may not be the end of the game)
       CAUTION: This function will modify the input Board. So a copy.deepcopy must be provided.
@@ -178,10 +178,15 @@ class MCTS:
       feature_box      = Board.get_current_player_feature_box()
       for i in range(len(feature_box)):
         feature_box[i] = self.dihedral_transformation(feature_box[i], rotation_order, reflection_order)
-      policy_value    = self.policy_value_fn(np.array([feature_box]), raw_output = False)
-      policy          = list(policy_value[0][:-1])
-      policy[0]       = self.dihedral_transformation(policy[0], rotation_order, reflection_order, inverse=True)
-      leaf_value      = policy_value[0][-1]
+      policy_value     = self.policy_value_fn(np.array([feature_box]), raw_output = False)
+      policy           = list(policy_value[0][:-1])
+      policy[0]        = self.dihedral_transformation(policy[0], rotation_order, reflection_order, inverse=True)
+      # add Dirichlet Noise to encourage exploration
+      noise     = np.random.dirichlet(dirichlet_param*np.ones(Board.height*Board.width+1))
+      policy[0] = policy[0]*(1.-epsilon) + epsilon*noise[:-1].reshape(Board.height, Board.width)
+      policy[1] = policy[1]*(1.-epsilon) + epsilon*noise[-1]
+      # expand
+      leaf_value = policy_value[0][-1]
       self.Tree.expand(node_id, policy, Board)
 
     # Update the leaf and its ancestors
@@ -203,7 +208,7 @@ class MCTS:
         result = np.rot90(feature_plane, -rotation_order)
     return result
 
-  def get_move_probability(self, Board, temp=1.):
+  def get_move_probability(self, Board, temp=1., epsilon=0.25, dirichlet_param=0.1):
     """
       Input:
         Board:    current board
@@ -221,11 +226,11 @@ class MCTS:
       start_time = time.time()
       while time.time()-start_time < self.s_thinking:
         Board_deepcopy = copy.deepcopy(Board)
-        self.rollout(Board_deepcopy)
+        self.rollout(Board_deepcopy, epsilon, dirichlet_param)
     else:
       for i in range(self.n_rollout):
         Board_deepcopy = copy.deepcopy(Board)
-        self.rollout(Board_deepcopy)
+        self.rollout(Board_deepcopy, epsilon, dirichlet_param)
 
     move        = []
     N_select    = []
@@ -255,14 +260,15 @@ class MCTS:
     self.Tree.reset()
 
 class MCTS_player:
-  def __init__(self, policy_value_fn, c_puct = 10., n_rollout = 100, temp = 1., is_self_play = True, name = "", s_thinking = None, use_thinking = False):
+  def __init__(self, policy_value_fn, c_puct = 5., n_rollout = 100, epsilon = 0.25, dirichlet_param = 0.1, temp = 1., name = "", s_thinking = None, use_thinking = False):
     self.name            = str(name)
     self.policy_value_fn = policy_value_fn
     self.c_puct          = float(c_puct)
     self.n_rollout       = int(n_rollout)
+    self.epsilon         = float(epsilon)
+    self.dirichlet_param = float(dirichlet_param)
     self.temp            = float(temp)
-    self.is_self_play    = is_self_play
-    self.s_thinking      = s_thinking
+    self.s_thinking      = float(s_thinking)
     self.use_thinking    = use_thinking
     self.MCTS            = MCTS(self.policy_value_fn, c_puct=self.c_puct, n_rollout=self.n_rollout, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
 
@@ -270,36 +276,24 @@ class MCTS_player:
     """
       epsilon [0,1] is to control how much dirichlet noise is added for exploration. 1 means complete noise.
     """
-    epsilon         = float(kwargs.get('epsilon', 0.25))
-    dirichlet_param = float(kwargs.get('dirichlet_param', 0.3))
+    epsilon         = float(kwargs.get('epsilon', self.epsilon))
+    dirichlet_param = float(kwargs.get('dirichlet_param', self.dirichlet_param))
     is_return_probs = kwargs.get('is_return_probs', False)
     temp            = float(kwargs.get('temp', self.temp))
 
     if Board.get_legal_action():
-      move, probs, children_id, Q = self.MCTS.get_move_probability(Board, temp)
-      if self.is_self_play:
-        # add Dirichlet Noise for exploration (needed for self-play training)  
-        actual_probs  = probs*(1.-epsilon) + epsilon*np.random.dirichlet(dirichlet_param*np.ones(len(probs)))
-        # sometimes, if move[0] = 'PASS', the code crashes. So use selected_move_index to avoid it.
-        #selected_move = np.random.choice(move, p=probs)
-        selected_move_index = np.random.choice(np.arange(len(move)), p=actual_probs)
-        selected_move = move[selected_move_index]
-        selected_move_probs = actual_probs[selected_move_index]
-        selected_move_value = Q[selected_move_index]
-      else:
-        #selected_move = np.random.choice(move, p=probs)
-        actual_probs = probs
-        selected_move_index = np.random.choice(np.arange(len(move)), p=actual_probs)
-        selected_move = move[selected_move_index]
-        selected_move_probs = actual_probs[selected_move_index]
-        selected_move_value = Q[selected_move_index]
+      move, probs, children_id, Q = self.MCTS.get_move_probability(Board, temp, epsilon, dirichlet_param)
+      selected_move_index = np.random.choice(np.arange(len(move)), p=probs)
+      selected_move       = move[selected_move_index]
+      selected_move_probs = probs[selected_move_index]
+      selected_move_value = Q[selected_move_index]
 
       self.MCTS.update_with_move(children_id[selected_move_index])
 
       if is_return_probs:
         return_probs = np.zeros(Board.height*Board.width+1)
         return_Q     = np.zeros(Board.height*Board.width+1)
-        for imove, iprobs, iQ in list(zip(move, actual_probs, Q)):
+        for imove, iprobs, iQ in list(zip(move, probs, Q)):
           if imove == "PASS":
             return_probs[-1] = iprobs
             return_Q[-1]     = iQ
@@ -309,7 +303,6 @@ class MCTS_player:
         return selected_move, return_probs, selected_move_probs, return_Q, selected_move_value
       else:
         return selected_move
-
     else:
       print("No legal move anymore. It should not happen because the game otherwise ends")
 

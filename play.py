@@ -48,6 +48,8 @@ class platform:
     # player1, AI/human brain params
     self.p1_temp         = args.p1_temp
     self.p1_n_rollout    = args.p1_n_rollout
+    self.p1_epsilon      = args.p1_epsilon
+    self.p1_dir_param    = args.p1_dir_param
     self.p1_s_thinking   = args.p1_s_thinking
     self.p1_use_thinking = args.p1_use_thinking
     self.p1_c_puct       = args.p1_c_puct
@@ -64,7 +66,7 @@ class platform:
       self.p1_name = self.p1_brain_path.split("/")[-1]
       if not self.p1_name:
         self.p1_name = self.p1_brain_path.split("/")[-2]
-      self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, temp = self.p1_temp, is_self_play = False, name="AlphaZero "+self.p1_name, s_thinking=self.p1_s_thinking, use_thinking=self.p1_use_thinking)
+      self.p1 = MCTS_player(self.p1_brain.predict, c_puct = self.p1_c_puct, n_rollout = self.p1_n_rollout, epsilon = self.p1_epsilon, dirichlet_param = self.p1_dir_param, temp = self.p1_temp, name = "AlphaZero "+self.p1_name, s_thinking = self.p1_s_thinking, use_thinking = self.p1_use_thinking)
       print("Overwriting board size according to trained model (player 1) ...")
       self.board_height = self.p1_brain.board_height
       self.board_width  = self.p1_brain.board_width
@@ -72,6 +74,8 @@ class platform:
     # player2, AI/human brain params
     self.p2_temp         = args.p2_temp
     self.p2_n_rollout    = args.p2_n_rollout
+    self.p2_epsilon      = args.p2_epsilon
+    self.p2_dir_param    = args.p2_dir_param
     self.p2_s_thinking   = args.p2_s_thinking
     self.p2_use_thinking = args.p2_use_thinking
     self.p2_c_puct       = args.p2_c_puct
@@ -91,7 +95,7 @@ class platform:
       self.p2_name = self.p2_brain_path.split("/")[-1]
       if not self.p2_name:
         self.p2_name = self.p2_brain_path.split("/")[-2]
-      self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, temp = self.p2_temp, is_self_play = False, name="AlphaZero "+self.p2_name, s_thinking=self.p2_s_thinking, use_thinking=self.p2_use_thinking)
+      self.p2 = MCTS_player(self.p2_brain.predict, c_puct = self.p2_c_puct, n_rollout = self.p2_n_rollout, epsilon = self.p2_epsilon, dirichlet_param = self.p2_dir_param, temp = self.p2_temp, name = "AlphaZero "+self.p2_name, s_thinking = self.p2_s_thinking, use_thinking = self.p2_use_thinking)
       print("Overwriting board size according to trained model (player 2) ...")
       self.board_height = self.p2_brain.board_height
       self.board_width  = self.p2_brain.board_width
@@ -178,11 +182,15 @@ if __name__ == "__main__":
   # AI brain params
   parser.add_argument("--p1-temp",         default=0.,       action="store",       type=float, help="player1, temperature to control how greedy of selecting next action")
   parser.add_argument("--p1-n-rollout",    default=400,      action="store",       type=int,   help="player1, number of simulations for each move")
+  parser.add_argument("--p1-epsilon",      default=0.25,     action="store",       type=float, help="player1, fraction of noise in prior probability")
+  parser.add_argument("--p1-dir-param",    default=0.1,      action="store",       type=float, help="player1, extent of encouraging exploration")
   parser.add_argument("--p1-s-thinking",   default=1,        action="store",       type=int,   help="player1, time allowed to think for each move (in seconds)")
   parser.add_argument("--p1-use-thinking", default=False,    action="store_true",              help="player1, use thinking time instead of n_rollouts")
   parser.add_argument("--p1-c-puct",       default=5.,       action="store",       type=float, help="player1, coefficient of controlling the extent of exploration versus exploitation")
   parser.add_argument("--p2-temp",         default=0.,       action="store",       type=float, help="player2, temperature to control how greedy of selecting next action")
   parser.add_argument("--p2-n-rollout",    default=400,      action="store",       type=int,   help="player2, number of simulations for each move")
+  parser.add_argument("--p2-epsilon",      default=0.25,     action="store",       type=float, help="player2, fraction of noise in prior probability")
+  parser.add_argument("--p2-dir-param",    default=0.1,      action="store",       type=float, help="player2, extent of encouraging exploration")
   parser.add_argument("--p2-s-thinking",   default=1,        action="store",       type=int,   help="player2, time allowed to think for each move (in seconds)")
   parser.add_argument("--p2-use-thinking", default=False,    action="store_true",              help="player2, use thinking time instead of n_rollouts")
   parser.add_argument("--p2-c-puct",       default=5.,       action="store",       type=float, help="player2, coefficient of controlling the extent of exploration versus exploitation")

@@ -60,7 +60,18 @@ class Server:
     """
       Player 1 starts the game.
     """
+    # reset
     self.Board.reset()
+    try:
+      player1.reset()
+    except:
+      pass
+    try:
+      player2.reset()
+    except:
+      pass
+
+    # info
     player        = {1: player1, -1: player2}
     player_number = {1:1, -1:2, 0:0}
     selected_move = None

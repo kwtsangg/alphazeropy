@@ -84,19 +84,22 @@ class train_pipeline:
     if self.load_path is not None:
       self.AI_brain.load_class(self.load_path)
 
-    # training params 
-    self.learning_rate         = args.learning_rate
-    self.learning_rate_f       = args.learning_rate_f
+    # AI params
     self.temp                  = args.temp
     self.n_rollout             = args.n_rollout
+    self.epsilon               = args.epsilon
+    self.dir_param             = args.dir_param
     self.s_thinking            = args.s_thinking
     self.use_thinking          = args.use_thinking
     self.c_puct                = args.c_puct
+    # training params 
+    self.learning_rate         = args.learning_rate
+    self.learning_rate_f       = args.learning_rate_f
     self.batch_size            = args.batch_size
     self.epochs                = args.epochs
 
     from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
-    self.AI_player = MCTS_player(self.AI_brain.predict, c_puct = self.c_puct, n_rollout = self.n_rollout, is_self_play = True, temp = self.temp, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
+    self.AI_player = MCTS_player(self.AI_brain.predict, c_puct = self.c_puct, n_rollout = self.n_rollout, epsilon = self.epsilon, dirichlet_param = self.dir_param, temp = self.temp, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
 
     # other training params
     self.play_batch_size             = args.play_batch_size
@@ -278,15 +281,17 @@ if __name__ == "__main__":
   parser.add_argument("--n-res-blocks",        default=5,           action="store",            type=int,   help="number of residual blocks")
   parser.add_argument("--l2-regularization",   default=1e-4,        action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
   parser.add_argument("--bn-axis",             default=-1,          action="store",            type=int,   help="batch normalization axis. For 'tf', it is 3. For 'th', it is 1.")
-  # training params 
-  parser.add_argument("--optimizer",           default="adam",      action="store",            type=str,   help="method of gradient descent (adam or sgd)")
-  parser.add_argument("--learning-rate",       default=1e-3,        action="store",            type=float, help="learning rate")
-  parser.add_argument("--learning-rate-f",                          action="store",            type=float, help="final learning rate. If specify, exponential decay of learning rate is used.")
+  # AI params
   parser.add_argument("--temp",                default=1.,          action="store",            type=float, help="temperature to control how greedy of selecting next action")
   parser.add_argument("--n-rollout",           default=400,         action="store",            type=int,   help="number of simulations for each move")
+  parser.add_argument("--epsilon",             default=0.25,        action="store",            type=float, help="fraction of noise in prior probability")
+  parser.add_argument("--dir-param",           default=0.1,         action="store",            type=float, help="extent of encouraging exploration")
   parser.add_argument("--s-thinking",          default=1,           action="store",            type=int,   help="time allowed to think for each move (in seconds)")
   parser.add_argument("--use-thinking",        default=False,       action="store_true",                   help="use thinking time instead of n_rollouts")
   parser.add_argument("--c-puct",              default=5.,          action="store",            type=float, help="coefficient of controlling the extent of exploration versus exploitation")
+  # training params 
+  parser.add_argument("--learning-rate",       default=1e-3,        action="store",            type=float, help="learning rate")
+  parser.add_argument("--learning-rate-f",                          action="store",            type=float, help="final learning rate. If specify, exponential decay of learning rate is used.")
   parser.add_argument("--batch-size",          default=512,         action="store",            type=int,   help="mini-batch size for training")
   parser.add_argument("--epochs",              default=50,          action="store",            type=int,   help="number of training steps for each gradient descent update")
   # other training params
