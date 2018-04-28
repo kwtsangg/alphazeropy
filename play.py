@@ -18,7 +18,7 @@ import sys
 import argparse, textwrap
 from datetime import datetime
 
-from server import Server, Human, RandomMove
+from server import Server, Human
 
 #================================================================
 # Main
@@ -83,10 +83,7 @@ class platform:
     self.p2_brain_path  = args.p2_brain
     self.p2_name        = args.p2_name
     if self.p2_brain_path is None:
-      if self.evaluate:
-        self.p2 = RandomMove(name="Random "+self.p2_name)
-      else:
-        self.p2 = Human(name=self.p2_name)
+      self.p2 = Human(name=self.p2_name)
     else:
       from alphazero import AlphaZero
       from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
@@ -148,21 +145,12 @@ class platform:
       print("The evaluation fails because its opponent is too weak.")
       return 0
 
-    try:
-      elo_player2 = np.loadtxt("%s/elo.txt" % self.p2_brain_path)
-    except:
-      # In case of random-move player
-      elo_player2 = 0
+    elo_player2 = np.loadtxt("%s/elo.txt" % self.p2_brain_path)
     elo_player1 = inverse_logistic(elo_player2, prob)
     print("The win rate of the model candidate is %.2f %%, which corresponds to elo of %i" % (prob*100., elo_player1))
-    if self.p2_brain_path:
-      comment="%s The elo of the model (%s, n_rollout %i, s_thinking %i s, use_thinking %i) is evaluated against the model (%s, n_rollout %i, s_thinking %i s, use_thinking %i) which has an elo of %i" % (datetime.today().strftime('%Y%m%d%H%M'), self.p1_brain_path, self.p1_n_rollout, self.p1_s_thinking, self.p1_use_thinking, self.p2_brain_path, self.p2_n_rollout, self.p2_s_thinking, self.p2_use_thinking, elo_player2)
-      print(comment)
-      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header=comment)
-    else:
-      comment="%s The elo of the model (%s, n_rollout %i, s_thinking %i s, use_thinking %i) is evaluated against a random-move player which has an elo of 0 by definition" % (datetime.today().strftime('%Y%m%d%H%M'), self.p1_brain_path, self.p1_n_rollout, self.p1_s_thinking, self.p1_use_thinking)
-      print(comment)
-      np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header=comment)
+    comment="%s The elo of the model (%s, n_rollout %i, s_thinking %i s, use_thinking %i) is evaluated against the model (%s, n_rollout %i, s_thinking %i s, use_thinking %i) which has an elo of %i" % (datetime.today().strftime('%Y%m%d%H%M'), self.p1_brain_path, self.p1_n_rollout, self.p1_s_thinking, self.p1_use_thinking, self.p2_brain_path, self.p2_n_rollout, self.p2_s_thinking, self.p2_use_thinking, elo_player2)
+    print(comment)
+    np.savetxt("%s/elo.txt" % self.p1_brain_path, [elo_player1], fmt="%i", header=comment)
     return elo_player1
 
 if __name__ == "__main__":
@@ -211,7 +199,7 @@ if __name__ == "__main__":
         except:
           raise ValueError("the model (--p2-brain) has not been evaluated, so it cannot be used to evaluate other model.")
       else:
-        print("No model (--p2-brain) is provided as an opponent. A random-move player is used instead.")
+        raise ValueError("No model (--p2-brain) is provided as an opponent. An untrained-MCTS player (which elo is defined to be 0, with n-rollout 400) can be generated throught train.py and used instead.")
 
   a = platform(args)
   if args.evaluate:

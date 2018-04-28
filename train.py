@@ -10,19 +10,16 @@ __date__       = "2018-Feb-15"
 Description="""
   To train my AI.
   Example:
+    To create an untrained-MCTS brain:
       python train.py --game gomoku --n-in-row 5 --board-height 9 --board-width 9
       python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7
       python train.py --game reversi --board-height 8 --board-width 8
 
+    To generate gameplay:
       python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --n-rollout 400 --save-path $PWD/connectfour_training_model/ --c-puct 5 --generate-game-data-only
-      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --batch-size 1024 --save-path $PWD/connectfour_training_model/ --load-path $PWD/connectfour_training_model/201804281926_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_64 --epochs 200 --learning-rate 1e-2 --train-on-game-data-only --train-on-last-n-sets 5000
 
-  For game data generation only,
-      add --save-path PATH --generate-game-data-only
-  For training only,
-      add --save-path PATH --train-on-gama-data-only
-        in save-path, the path contains the trained model and the game data directory
-      add --load-path PATH to locate the latest model
+    To train on gameplay:
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --batch-size 1024 --save-path $PWD/connectfour_training_model/ --load-path $PWD/connectfour_training_model/201804281926_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_64 --epochs 200 --learning-rate 1e-2 --train-on-game-data-only --train-on-last-n-sets 5000
 """
 
 #===============================================================================
@@ -126,8 +123,15 @@ class train_pipeline:
         if not os.path.isdir(self.train_on_game_data_dir):
           raise ValueError("Please specify where the directory storing the game data by --train-on-game-data-dir")
 
-  #===============================#
+  #================================================================
   # Other functions
+  #================================================================
+  def generate_untrained_MCTS_brain(self):
+    savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
+    np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0, with n-rollout 400)")
+
+  #===============================#
+  # Gameplay generating functions
   #===============================#
 
   def load_latest_model(self, current_model_no):
@@ -222,7 +226,6 @@ class train_pipeline:
       Generating gamedata until certin amount, and then train on those gamedata.
       This function should be obsolete.
     """
-#    self.AI_brain.save_class(name=self.savename, path=self.save_path)
     train_x, train_y_policy, train_y_value = [], [], []
     for i in range(self.play_batch_size):
       print("%i/%i" % (i, self.play_batch_size))
@@ -230,12 +233,10 @@ class train_pipeline:
       train_x.extend(state_result_list)
       train_y_policy.extend(policy_result_list)
       train_y_value.extend(value_result_list)
-
       if len(train_x) > self.batch_size:
         print("Training ...")
         self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
         train_x, train_y_policy, train_y_value = [], [], []
-
       self.AI_brain.save_class(name=self.savename, path=self.save_path)
 
   def train_on_dir(self):
@@ -306,7 +307,7 @@ if __name__ == "__main__":
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
   parser.add_argument("--train-on-game-data-dir",                   action="store",            type=str,   help="directory path where game data is saved for training (only training)")
   parser.add_argument("--train-on-last-n-sets",    default=500,     action="store",            type=int,   help="train on the last n recent game")
-  parser.add_argument("--train-every-mins",    default=10.,         action="store",            type=float, help="period (in mins) of performing training on game data directory")
+  parser.add_argument("--train-every-mins",        default=10.,     action="store",            type=float, help="period (in mins) of performing training on game data directory")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
 
@@ -316,5 +317,5 @@ if __name__ == "__main__":
   elif args.train_on_game_data_only:
     a.train_on_dir()
   else:
-    a.train()
+    a.generate_untrained_MCTS_brain()
   
