@@ -81,7 +81,7 @@ class train_pipeline:
               l2_regularization = self.l2_regularization,
               bn_axis           = self.bn_axis
             )
-    if self.load_path is not None:
+    if self.load_path:
       self.AI_brain.load_class(self.load_path)
 
     # AI params

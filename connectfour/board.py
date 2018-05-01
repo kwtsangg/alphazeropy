@@ -69,7 +69,7 @@ class Board:
           C. available action with 1 and others 0
           # D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
-    if action is not None:
+    if action:
       self.move(action)
 
     tmp_state = self.state*self.current_player
@@ -86,7 +86,7 @@ class Board:
       if type(legal_action) != str:
         C[legal_action] = 1
 
-    if action is not None:
+    if action:
       self.undo_move(action)
 
     return np.array([A,B,C])
@@ -156,7 +156,7 @@ class Board:
     return self.winner
 
   def print_state(self, selected_move = None):
-    if selected_move is not None:
+    if selected_move:
       print(self.token[self.get_last_player()], " took a move ", selected_move)
     output = "   "
     for j in range(self.width):
@@ -167,7 +167,7 @@ class Board:
     for i in range(self.height):
       output = "%2i " % i
       for j in range(self.width):
-        if selected_move is not None and i == selected_move[0] and j == selected_move[1]:
+        if selected_move and i == selected_move[0] and j == selected_move[1]:
           output = output[:-1]
           output += " [%s]" % self.token[self.state[i][j]]
         else:

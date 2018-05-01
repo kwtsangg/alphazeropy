@@ -65,7 +65,7 @@ class AlphaZero:
             l2_regularization = 1e-4,
             bn_axis           = -1
           ):
-    if load_path is not None:
+    if load_path:
       self.load_class(load_path)
     else:
       self.board_height      = board_height
