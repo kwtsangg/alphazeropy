@@ -60,7 +60,7 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.score            = {1:0., -1:self.komi}
     self.current_player   = 1
-    self.n_pass_disable   = 0 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
+    self.n_pass_disable   = -1 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
 
     self.group = {} # a map from stone position to the Stone group.
@@ -140,12 +140,40 @@ class Board:
         an ordered number [x,y], x:[0,height-1], y:[0,width-1]
     """
     # Take move and record it down
-    capture_position = self.add(action)
-    for pos in capture_position:
-      self.state[pos] = 0
-    self.score[self.current_player] += len(capture_position)
-    self.state[action[0]][action[1]] = self.current_player
-    self.history.append((action[0], action[1]))
+
+    # Merge ally Stone if any
+    if type(action) != str:
+      self.history.append((action[0], action[1]))
+      self.state[action[0]][action[1]] = self.current_player
+
+      tmp_Stone = Stone(self.current_player)
+      tmp_Stone.add(action)
+      ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(action)
+      for ally_Stone in ally_Stone_set:
+        tmp_Stone.stones = tmp_Stone.stones | ally_Stone.stones
+      tmp_Stone.update_liberties(self)
+      for pos in tmp_Stone.stones:
+        self.group[pos] = tmp_Stone
+
+      # Update enemy Stone liberties
+      capture_set = set()
+      for enemy_Stone in enemy_Stone_set:
+        enemy_Stone.liberties.remove(action)
+        if not enemy_Stone.liberties:
+          capture_set = capture_set | enemy_Stone.stones
+          self.delete_group(enemy_Stone)
+
+      # Update ally Stone liberties
+      if capture_set:
+        ally_Stone_set = set()
+        for capture_pos in capture_set:
+          self.state[capture_pos] = 0
+          ally_Stone_set = ally_Stone_set | self.get_nearby_Stone(capture_pos)[0]
+        for ally_Stone in ally_Stone_set:
+          ally_Stone.update_liberties(self)
+        self.score[self.current_player] += len(capture_set)
+    else:
+      self.history.append(action)
 
     # Switch current player
     self.current_player = 1 if self.current_player == -1 else -1
@@ -221,31 +249,6 @@ class Board:
 
   def check_simple_ko(self, position, Board):
     pass
-    
-  def add(self, position):
-    """
-      Assumed the move is valid, this function will be called to add the selected move to self.group (a dict of Stone).
-      Output:
-        number of captured stones
-    """
-    tmp_Stone = Stone(self.current_player)
-    tmp_Stone.add(position)
-    ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(position)
-    # Merge ally Stone if any
-    for ally_Stone in ally_Stone_set:
-      tmp_Stone.stones = tmp_Stone.stones | ally_Stone.stones
-    tmp_Stone.update_liberties(self)
-    for pos in tmp_Stone.stones:
-      self.group[pos] = tmp_Stone
-
-    # Update enemy Stone liberties
-    capture_set = set()
-    for enemy_Stone in enemy_Stone_set:
-      enemy_Stone.liberties.remove(position)
-      if not enemy_Stone.liberties:
-        capture_set = capture_set | enemy_Stone.stones
-        self.delete_group(enemy_Stone)
-    return capture_set
 
   def delete_group(self, Stone):
     for position in Stone.stones:
