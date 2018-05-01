@@ -72,7 +72,7 @@ class Tree:
       Update myself and all ancestors 
     """
     self.nodes[leaf_id].update(leaf_value)
-    for parent_id in self.nodes[leaf_id].parent_prior_N:
+    for parent_id in self.nodes[leaf_id].parent_prior:
       self.update_parents_recursively(parent_id, -leaf_value)
 
   def delete_children_recursively(self, leaf_id):
@@ -109,32 +109,30 @@ class Tree:
 
 class TreeNode:
   def __init__(self):
-    self.parent_prior_N  = {}      # a map from the parent id to the [corresponded prior probability of selecting this node from the parent, visit count from this parent to this node]
+    self.parent_prior    = {}      # a map from the parent id to the corresponded prior probability of selecting this node from the parent
     self.children_action = {}      # a map from the children id to the action by which this node can move to the children
     self.N               = 0       # total visit count  (It is used to calculate the mean of action-value)
     self.N_select        = 0       # select count (It is used to calculate the move-select probabilty)
     self.Q               = 0       # mean of action-value
 
   def add_parent(self, parent_id, prior_p):
-    self.parent_prior_N[parent_id] = [prior_p, 0]
+    self.parent_prior[parent_id] = prior_p
 
   def delete_parent(self, parent_id):
-    del self.parent_prior_N[parent_id]
+    del self.parent_prior[parent_id]
 
   def add_children(self, children_id, action):
     self.children_action[children_id] = action
 
   def get_QplusU(self, c_puct, parent_id, parent_N):
-    return self.Q + c_puct*self.parent_prior_N[parent_id][0]*math.sqrt(parent_N)/(1.+self.parent_prior_N[parent_id][1])
+    return self.Q + c_puct*self.parent_prior[parent_id]*math.sqrt(parent_N)/(1.+self.N)
 
   def update(self, leaf_value):
-    for parent_id in self.parent_prior_N:
-      self.parent_prior_N[parent_id][1] += 1
     self.N += 1
     self.Q += (leaf_value - self.Q)/self.N  # incremental mean
 
   def is_root(self):
-    return not self.parent_prior_N  # self.parent_prior_N == {}
+    return not self.parent_prior  # self.parent_prior == {}
 
   def is_leaf(self):
     return not self.children_action # self.children_action == {}
