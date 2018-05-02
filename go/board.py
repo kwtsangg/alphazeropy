@@ -61,6 +61,7 @@ class Board:
     self.score            = {1:0., -1:self.komi}
     self.current_player   = 1
     self.n_pass_disable   = -1 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
+    self.n_max            = self.height*self.width*2
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
 
     self.group = {} # a map from stone position to the Stone group.
@@ -139,8 +140,6 @@ class Board:
       Input:
         an ordered number [x,y], x:[0,height-1], y:[0,width-1]
     """
-    # Take move and record it down
-
     # Merge ally Stone if any
     if type(action) != str:
       self.history.append((action[0], action[1]))
