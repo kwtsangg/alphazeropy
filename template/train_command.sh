@@ -5,10 +5,10 @@ python train.py \
  --board-width 7 \
  --n-filter 32 \
  --batch-size 1024 \
- --save-path /home/kwtsang/mle/gwhunter/gwhunter/neuralNetwork/board_game/connectfour_training_model/ \
- --load-path /home/kwtsang/mle/gwhunter/gwhunter/neuralNetwork/board_game/connectfour_training_model/201804301152_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32 \
+ --save-path /home/kwtsang/gamehunter/connectfour_training_model/ \
+ --load-path /home/kwtsang/gamehunter/connectfour_training_model/201805021212_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32 \
  --epochs 200 \
  --learning-rate 1e-2 \
  --learning-rate-f 1e-4 \
  --train-on-game-data-only \
- --train-on-last-n-sets 100000
+ --train-on-last-n-sets 10000
