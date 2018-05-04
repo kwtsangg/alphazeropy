@@ -183,10 +183,22 @@ class Board:
     """
     if len(self.history) > 1:
       if type(self.history[-1]) == str and type(self.history[-2]) == str:
-        final_score = np.sum(self.state)
-        if final_score > 0:
+        self.score[1]  += len(self.state[self.state==1])
+        self.score[-1] += len(self.state[self.state==-1])
+        empty_space = map(tuple, np.argwhere(self.state==0))
+        skip_pos = set()
+        for pos in empty_space:
+          if not pos in skip_pos:
+            group, connectToBlack, connectToWhite = self.find_empty_group(pos)
+            skip_pos = skip_pos | group
+            if connectToBlack and not connectToWhite:
+              self.score[1] += len(group)
+            elif connectToWhite and not connectToBlack:
+              self.score[-1] += len(group)
+        print("Score: Black %.1f, White %.1f" % (self.score[1], self.score[-1]))
+        if self.score[1] > self.score[-1]:
           self.winner = [True, 1]
-        elif final_score < 0:
+        elif self.score[-1] > self.score[1]:
           self.winner = [True, -1]
         else:
           self.winner = [True, 0]
@@ -238,11 +250,13 @@ class Board:
       if not self.state[pos]:
         return False
     ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(position)
+    pos_set = set()
+    pos_set.add(position)
     for ally_Stone in ally_Stone_set:
-      if (ally_Stone.liberties - set(position)):
+      if (ally_Stone.liberties - pos_set):
         return False
     for enemy_Stone in enemy_Stone_set:
-      if not (enemy_Stone.liberties - set(position)):
+      if not (enemy_Stone.liberties - pos_set):
         return False
     return True
 
@@ -278,4 +292,34 @@ class Board:
         continue
       neighbor.add((x_new, y_new))
     return neighbor
+
+  def find_empty_group(self, position):
+    group = set()
+    group.add(position)
+    next_neighbors = self.get_neighbor(position)
+    connectToBlack = False
+    connectToWhite = False
+    while next_neighbors:
+      tmp_neighbors  = next_neighbors
+      next_neighbors = set()
+      for neighbor in tmp_neighbors:
+        if not self.state[neighbor]:
+          if not neighbor in group:
+            group.add(neighbor)
+            next_neighbors = next_neighbors | self.get_neighbor(neighbor)
+        elif self.state[neighbor] == 1:
+          connectToBlack = True
+        else:
+          connectToWhite = True
+    return group, connectToBlack, connectToWhite
+
+
+
+
+
+
+
+
+
+
 
