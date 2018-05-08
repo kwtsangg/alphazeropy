@@ -63,6 +63,7 @@ class Board:
     self.n_pass_disable   = -1 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
     self.n_max            = self.height*self.width*2
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
+    self.past_states_id   = set()
 
     self.group = {} # a map from stone position to the Stone group.
 
@@ -91,6 +92,7 @@ class Board:
           D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
     if action:
+      last_past_states_id = self.past_states_id
       last_state = self.state
       last_group = copy.deepcopy(self.group)
       last_score = self.score
@@ -113,9 +115,10 @@ class Board:
     D = -self.current_player*np.ones(self.height*self.width).reshape(self.height, self.width)
 
     if action:
-      self.state = last_state
+      self.past_states_id = last_past_states_id
       self.group = last_group
       self.score = last_score
+      self.state = last_state
       del self.history[-1]
       # Switch current player
       self.current_player = 1 if self.current_player == -1 else -1
@@ -143,8 +146,8 @@ class Board:
     # Merge ally Stone if any
     if type(action) != str:
       self.history.append((action[0], action[1]))
+      self.past_states_id.add(hash(self.state.tobytes()))
       self.state[action[0]][action[1]] = self.current_player
-
       tmp_Stone = Stone(self.current_player)
       tmp_Stone.add(action)
       ally_Stone_set, enemy_Stone_set = self.get_nearby_Stone(action)
@@ -182,7 +185,7 @@ class Board:
       Using the last move to check whether the game has a winner
     """
     if len(self.history) > 1:
-      if type(self.history[-1]) == str and type(self.history[-2]) == str:
+      if (type(self.history[-1]) == str and type(self.history[-2]) == str) or len(self.history) >= self.n_max:
         self.score[1]  += len(self.state[self.state==1])
         self.score[-1] += len(self.state[self.state==-1])
         empty_space = map(tuple, np.argwhere(self.state==0))
@@ -238,9 +241,11 @@ class Board:
       return False
     elif self.check_suicide((x,y)):
       return False
+    elif self.check_situational_superko((x,y)):
+      return False
     else:
       return True
-      
+
   #================================================================
   # Group function
   #================================================================
@@ -260,8 +265,14 @@ class Board:
         return False
     return True
 
-  def check_simple_ko(self, position, Board):
-    pass
+  def check_situational_superko(self, position):
+    is_superko = False
+    self_deepcopy = copy.deepcopy(self)
+    self_deepcopy.move(position)
+    # check for state repetition
+    if hash(self_deepcopy.state.tobytes()) in self.past_states_id:
+      is_superko = True
+    return is_superko
 
   def delete_group(self, Stone):
     for position in Stone.stones:
