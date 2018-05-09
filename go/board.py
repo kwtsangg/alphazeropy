@@ -67,6 +67,12 @@ class Board:
 
     self.group = {} # a map from stone position to the Stone group.
 
+    if self.width == self.height:
+      self.rotation_symmetry = [0, 1, 2, 3]
+    else:
+      self.rotation_symmetry = [0, 2]
+    self.reflection_symmetry = [0, 1]
+
   def get_legal_action(self):
     """
       Output:
@@ -160,7 +166,7 @@ class Board:
       # Update enemy Stone liberties
       capture_set = set()
       for enemy_Stone in enemy_Stone_set:
-        enemy_Stone.liberties.remove(action)
+        enemy_Stone.update_liberties(self)
         if not enemy_Stone.liberties:
           capture_set = capture_set | enemy_Stone.stones
           self.delete_group(enemy_Stone)
