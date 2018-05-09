@@ -93,6 +93,11 @@ class Server:
 
     if is_shown:
       self.Board.print_state(selected_move)
+      try:
+        print("Player1 Score %.1f" % self.Board.score[1])
+        print("Player2 Score %.1f" % self.Board.score[-1])
+      except:
+        pass
       if self.Board.winner[1] == 0:
         print("It is a draw game !")
       else:
@@ -144,6 +149,11 @@ class Server:
       winners_z[np.array(current_players) == self.Board.winner[1]] = 1
       winners_z[np.array(current_players) != self.Board.winner[1]] = -1
     if is_shown:
+      try:
+        print("Player1 Score %.1f" % self.Board.score[1])
+        print("Player2 Score %.1f" % self.Board.score[-1])
+      except:
+        pass
       if self.Board.winner[1] == 0:
         print("It is a draw game !")
       else:

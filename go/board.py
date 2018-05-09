@@ -204,7 +204,6 @@ class Board:
               self.score[1] += len(group)
             elif connectToWhite and not connectToBlack:
               self.score[-1] += len(group)
-        print("Score: Black %.1f, White %.1f" % (self.score[1], self.score[-1]))
         if self.score[1] > self.score[-1]:
           self.winner = [True, 1]
         elif self.score[-1] > self.score[1]:
