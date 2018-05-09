@@ -224,19 +224,22 @@ class train_pipeline:
   def train(self):
     """
       Generating gamedata until certin amount, and then train on those gamedata.
-      This function should be obsolete.
     """
     train_x, train_y_policy, train_y_value = [], [], []
-    for i in range(self.play_batch_size):
-      print("%i/%i" % (i, self.play_batch_size))
-      state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
-      train_x.extend(state_result_list)
-      train_y_policy.extend(policy_result_list)
-      train_y_value.extend(value_result_list)
-      if len(train_x) > self.batch_size:
-        print("Training ...")
-        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
-        train_x, train_y_policy, train_y_value = [], [], []
+    try:
+      for i in range(self.play_batch_size):
+        print("%i/%i" % (i, self.play_batch_size))
+        state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
+        train_x.extend(state_result_list)
+        train_y_policy.extend(policy_result_list)
+        train_y_value.extend(value_result_list)
+        if len(train_x) > self.batch_size:
+          print("Training ...")
+          self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
+          train_x, train_y_policy, train_y_value = [], [], []
+      self.AI_brain.save_class(name=self.savename, path=self.save_path)
+    except KeyboardInterrupt:
+      print("Saving model ...")
       self.AI_brain.save_class(name=self.savename, path=self.save_path)
 
   def train_on_dir(self):
@@ -302,6 +305,7 @@ if __name__ == "__main__":
   # other training params
   parser.add_argument("--play-batch-size",     default=5000,        action="store",            type=int,   help="number of games generated in each calling")
   # other
+  parser.add_argument("--train-online",        default=False,       action="store_true",                   help="generate game data and train on those recursively")
   parser.add_argument("--generate-game-data-only", default=False,   action="store_true",                   help="generate game data only without training")
   parser.add_argument("--generate-game-data-dir",                   action="store",            type=str,   help="directory path to save the generated game data (only generation, no training)")
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
@@ -312,7 +316,9 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   a = train_pipeline(args)
-  if args.generate_game_data_only:
+  if args.train_online:
+    a.train()
+  elif args.generate_game_data_only:
     a.get_game_data_parallel()
   elif args.train_on_game_data_only:
     a.train_on_dir()
