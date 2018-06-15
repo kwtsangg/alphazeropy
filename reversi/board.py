@@ -38,6 +38,7 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
+    self.n_feature_plane  = 3
     self.state[self.height/2-1][self.width/2-1] =  1
     self.state[self.height/2-1][self.width/2  ] = -1
     self.state[self.height/2  ][self.width/2-1] = -1

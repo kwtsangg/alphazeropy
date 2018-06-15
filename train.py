@@ -57,11 +57,11 @@ class train_pipeline:
     from server import Server
     self.Board            = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
     self.server           = Server(self.Board)
+    self.n_feature_plane  = self.Board.n_feature_plane
 
     # AI brain params
     self.load_path         = args.load_path
     self.save_path         = args.save_path
-    self.n_feature_plane   = args.n_feature_plane
     self.n_filter          = args.n_filter
     self.kernel_size_conv  = args.kernel_size_conv
     self.kernel_size_res   = args.kernel_size_res
@@ -98,7 +98,7 @@ class train_pipeline:
     self.batch_size            = args.batch_size
     self.epochs                = args.epochs
 
-    from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
+    from mcts_cyclic_ref import MCTS_player
     self.AI_player = MCTS_player(self.AI_brain.predict, c_puct = self.c_puct, n_rollout = self.n_rollout, epsilon = self.epsilon, dirichlet_param = self.dir_param, temp = self.temp, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
 
     # other training params
@@ -282,7 +282,6 @@ if __name__ == "__main__":
   # AI brain params
   parser.add_argument("--save-path",           default=os.getcwd(), action="store",            type=str,   help="directory path that trained model will be saved in")
   parser.add_argument("--load-path",                                action="store",            type=str,   help="directory path of trained model")
-  parser.add_argument("--n-feature-plane",     default=3,           action="store",            type=int,   help="number of feature plane")
   parser.add_argument("--n-filter",            default=32,          action="store",            type=int,   help="number of filters used in conv2D")
   parser.add_argument("--kernel-size-conv",    default=(3,3),       action="store",            type=tuple, help="kernel size of first convolution layer")
   parser.add_argument("--kernel-size-res",     default=(3,3),       action="store",            type=tuple, help="kernel size of residual blocks")

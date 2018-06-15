@@ -63,7 +63,8 @@ class Board:
     self.n_pass_disable   = -1 if kwargs.get('n_pass_disable') is None else int(kwargs.get('n_pass_disable'))
     self.n_max            = self.height*self.width*2
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    self.past_states_id   = set()
+    self.n_feature_plane  = 4
+    self.last_state_id    = 0.
 
     self.group = {} # a map from stone position to the Stone group.
 
@@ -98,7 +99,7 @@ class Board:
           D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
     if action:
-      last_past_states_id = self.past_states_id
+      last_last_state_id = self.last_state_id
       last_state = self.state
       last_group = copy.deepcopy(self.group)
       last_score = self.score
@@ -121,7 +122,7 @@ class Board:
     D = -self.current_player*np.ones(self.height*self.width).reshape(self.height, self.width)
 
     if action:
-      self.past_states_id = last_past_states_id
+      self.last_state_id = last_last_state_id
       self.group = last_group
       self.score = last_score
       self.state = last_state
@@ -132,11 +133,7 @@ class Board:
     return np.array([A,B,C,D])
 
   def get_current_player_feature_box_id(self, action = None):
-    # The last term is to prevent cyclic tree nodes
-    if action:
-      return hash("%s%i" % (self.get_current_player_feature_box(action).tobytes(), len(self.history)+1))
-    else:
-      return hash("%s%i" % (self.get_current_player_feature_box(action).tobytes(), len(self.history)))
+    return hash(self.get_current_player_feature_box(action).tobytes())
 
   def get_last_player(self):
     return -self.current_player
@@ -152,7 +149,7 @@ class Board:
     # Merge ally Stone if any
     if type(action) != str:
       self.history.append((action[0], action[1]))
-      self.past_states_id.add(hash(self.state.tobytes()))
+      self.last_state_id = hash(self.state.tobytes())
       self.state[action[0]][action[1]] = self.current_player
       tmp_Stone = Stone(self.current_player)
       tmp_Stone.add(action)
@@ -246,7 +243,7 @@ class Board:
       return False
     elif self.check_suicide((x,y)):
       return False
-    elif self.check_situational_superko((x,y)):
+    elif self.check_simple_ko((x,y)):
       return False
     else:
       return True
@@ -270,14 +267,16 @@ class Board:
         return False
     return True
 
-  def check_situational_superko(self, position):
-    is_superko = False
+  def check_simple_ko(self, position):
+    for pos in self.get_neighbor(position):
+      if not self.state[pos]:
+        return False
     self_deepcopy = copy.deepcopy(self)
     self_deepcopy.move(position)
     # check for state repetition
-    if hash(self_deepcopy.state.tobytes()) in self.past_states_id:
-      is_superko = True
-    return is_superko
+    if hash(self_deepcopy.state.tobytes()) == self.last_state_id:
+      return True
+    return False
 
   def delete_group(self, Stone):
     for position in Stone.stones:

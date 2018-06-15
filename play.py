@@ -60,7 +60,7 @@ class platform:
       self.p1 = Human(name=self.p1_name)
     else:
       from alphazero import AlphaZero
-      from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
+      from mcts_cyclic_ref import MCTS_player
       self.p1_brain = AlphaZero()
       self.p1_brain.load_class(self.p1_brain_path, False)
       self.p1_name = self.p1_brain_path.split("/")[-1]
@@ -86,7 +86,7 @@ class platform:
       self.p2 = Human(name=self.p2_name)
     else:
       from alphazero import AlphaZero
-      from mcts_id import MCTS_player # or from mcts_cyclic_ref import MCTS_player
+      from mcts_cyclic_ref import MCTS_player
       self.p2_brain     = AlphaZero()
       self.p2_brain.load_class(self.p2_brain_path, False)
       self.p2_name = self.p2_brain_path.split("/")[-1]

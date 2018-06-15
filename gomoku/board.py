@@ -39,6 +39,7 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
+    self.n_feature_plane  = 3
     if self.width == self.height:
       self.rotation_symmetry = [0, 1, 2, 3]
     else:
