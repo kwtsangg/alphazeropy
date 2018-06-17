@@ -202,6 +202,7 @@ class MCTS:
 class MCTS_player:
   def __init__(self, policy_value_fn, c_puct = 5., n_rollout = 100, epsilon = 0.25, dirichlet_param = 0.1, temp = 1., name = "", s_thinking = None, use_thinking = False):
     self.name            = str(name)
+    self.nature          = "mcts"
     self.policy_value_fn = policy_value_fn
     self.c_puct          = float(c_puct)
     self.n_rollout       = int(n_rollout)
@@ -220,6 +221,7 @@ class MCTS_player:
     dirichlet_param = float(kwargs.get('dirichlet_param', 0.3))
     is_return_probs = kwargs.get('is_return_probs', False)
     temp            = float(kwargs.get('temp', self.temp))
+    is_analysis     = kwargs.get('is_analysis', False)
 
     if Board.get_legal_action():
       move, probs, Q = self.MCTS.get_move_probability(Board, temp)
@@ -240,6 +242,8 @@ class MCTS_player:
           else:
             return_probs[imove[0]*Board.width+imove[1]] = iprobs
             return_Q[imove[0]*Board.width+imove[1]]     = iQ
+        if is_analysis:
+          self.print_analysis(return_probs[:-1].reshape(Board.height, Board.width), selected_move_probs, return_Q[:-1].reshape(Board.height, Board.width), selected_move_value)
         return selected_move, return_probs, selected_move_probs, return_Q, selected_move_value
       else:
         return selected_move
@@ -255,4 +259,12 @@ class MCTS_player:
   def reset(self):
     self.MCTS.reset()
 
+  def print_analysis(self, return_probs_reshaped, selected_move_prob, return_Q_reshaped, selected_move_value):
+    print("")
+    print("The value at the move is")
+    print(return_Q_reshaped)
+    print("The resultant policy is")
+    print(return_probs_reshaped)
+    print("The value of the chosen move is       ", selected_move_value)
+    print("The probabilty of chosen this move is ", selected_move_prob)
 

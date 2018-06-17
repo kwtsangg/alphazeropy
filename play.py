@@ -103,8 +103,11 @@ class platform:
     self.Board  = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
     self.server = Server(self.Board)
 
+    # Other
+    self.analysis = args.analysis
+
   def start_game(self):
-    self.server.start_game(player1=self.p1, player2=self.p2)
+    self.server.start_game(player1=self.p1, player2=self.p2, is_analysis=self.analysis)
 
   def start_evaluation(self):
     print("Evaluating ... ")
@@ -115,7 +118,7 @@ class platform:
 
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1, self.evaluate_game))
-      winner = self.server.start_game(player1=self.p1, player2=self.p2)
+      winner = self.server.start_game(player1=self.p1, player2=self.p2, is_analysis=self.analysis)
       if winner == 1:
         model_candidate["win"] += 1.
       elif winner == 0:
@@ -129,7 +132,7 @@ class platform:
 
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1+int(self.evaluate_game/2), self.evaluate_game))
-      winner = self.server.start_game(player1=self.p2, player2=self.p1)
+      winner = self.server.start_game(player1=self.p2, player2=self.p1, is_analysis=self.analysis)
       if winner == 2:
         model_candidate["win"] += 1.
       elif winner == 0:
@@ -182,10 +185,11 @@ if __name__ == "__main__":
   parser.add_argument("--p2-s-thinking",   default=1,        action="store",       type=int,   help="player2, time allowed to think for each move (in seconds)")
   parser.add_argument("--p2-use-thinking", default=False,    action="store_true",              help="player2, use thinking time instead of n_rollouts")
   parser.add_argument("--p2-c-puct",       default=5.,       action="store",       type=float, help="player2, coefficient of controlling the extent of exploration versus exploitation")
-  # Evaluator
+  # evaluator
   parser.add_argument("--evaluate",        default=False,    action="store_true",              help="get the elo of model (--p1-brain) against model (--p2-brain)")
   parser.add_argument("--evaluate-game",   default=100,      action="store",       type=int,   help="number of games used in getting elo")
   # other
+  parser.add_argument("--analysis",        default=False,    action="store_true",              help="if MCTS_player, show the value of the chosen move")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
 

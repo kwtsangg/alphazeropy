@@ -20,7 +20,8 @@ import numpy as np
 #================================================================
 class Human:
   def __init__(self, name=""):
-    self.name  = name
+    self.name   = name
+    self.nature = "human"
 
   def get_move(self, Board, **kwargs):
     """
@@ -42,7 +43,8 @@ class Human:
 
 class RandomMove:
   def __init__(self, name=""):
-    self.name  = name
+    self.name   = name
+    self.nature = "random"
 
   def get_move(self, Board, **kwargs):
     legal_action = Board.get_legal_action()
@@ -56,7 +58,7 @@ class Server:
   def __init__(self, Board):
     self.Board = Board
 
-  def start_game(self, player1 = Human(), player2 = Human(), is_shown = True):
+  def start_game(self, player1 = Human(), player2 = Human(), is_shown = True, is_analysis = False):
     """
       Player 1 starts the game.
     """
@@ -81,18 +83,22 @@ class Server:
       print("Player 1 is %s" % player1.name)
       print("Player 2 is %s" % player2.name)
       print("")
+      self.Board.print_state(selected_move)
 
     while not self.Board.winner[0]:
       if is_shown:
         print("Player %i %s ('%s') to move" % (player_number[self.Board.current_player], player[self.Board.current_player].name, self.Board.token[self.Board.current_player]))
-        self.Board.print_state(selected_move)
-      selected_move = player[self.Board.current_player].get_move(self.Board)
+      if is_shown and is_analysis and player[self.Board.current_player].nature == "mcts":
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, is_analysis=True)
+      else:
+        selected_move = player[self.Board.current_player].get_move(self.Board)
       self.Board.move(selected_move)
       player[self.Board.current_player].update_opponent_move(selected_move, self.Board.get_current_player_feature_box_id())
       self.Board.check_winner()
+      if is_shown:
+        self.Board.print_state(selected_move)
 
     if is_shown:
-      self.Board.print_state(selected_move)
       try:
         print("Player1 Score %.1f" % self.Board.score[1])
         print("Player2 Score %.1f" % self.Board.score[-1])
@@ -124,7 +130,11 @@ class Server:
     if is_shown:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
-      selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
+      if is_shown:
+        print("Player %i %s ('%s') to move" % (player_number[self.Board.current_player], player[self.Board.current_player].name, self.Board.token[self.Board.current_player]))
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, is_analysis=True)
+      else:
+        selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True)
 
       # store game state
       feature_input.append(self.Board.get_current_player_feature_box())
@@ -135,13 +145,6 @@ class Server:
       self.Board.move(selected_move)
       self.Board.check_winner()
       if is_shown:
-        print("")
-        print("The value at the move is")
-        print(return_Q[:-1].reshape(self.Board.height, self.Board.width))
-        print("The resultant policy is")
-        print(return_probs[:-1].reshape(self.Board.height, self.Board.width))
-        print("The value of the chosen move is       ", selected_move_value)
-        print("The probabilty of chosen this move is ", selected_move_prob)
         self.Board.print_state(selected_move)
 
     winners_z = np.zeros(len(current_players))
