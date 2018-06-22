@@ -5,6 +5,6 @@ python train.py \
  --board-width 7 \
  --n-filter 32 \
  --n-rollout 800 \
- --save-path /home/kwtsang/gamehunter/connectfour_training_model/ \
+ --save-path ${PWD}/connectfour_training_model/ \
  --c-puct 5 \
  --generate-game-data-only
