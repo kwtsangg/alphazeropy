@@ -39,10 +39,10 @@ class Board:
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.n_feature_plane  = 3
-    self.state[self.height/2-1][self.width/2-1] =  1
-    self.state[self.height/2-1][self.width/2  ] = -1
-    self.state[self.height/2  ][self.width/2-1] = -1
-    self.state[self.height/2  ][self.width/2  ] =  1
+    self.state[int(self.height/2)-1][int(self.width/2)-1] =  1
+    self.state[int(self.height/2)-1][int(self.width/2)  ] = -1
+    self.state[int(self.height/2)  ][int(self.width/2)-1] = -1
+    self.state[int(self.height/2)  ][int(self.width/2)  ] =  1
     self.rotation_symmetry   = [0, 2]
     self.reflection_symmetry = [0]
 
@@ -191,10 +191,10 @@ class Board:
     self.history        = []
     self.winner         = [False, 0]
     self.state          = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    self.state[self.height/2-1][self.width/2-1] =  1
-    self.state[self.height/2-1][self.width/2  ] = -1
-    self.state[self.height/2  ][self.width/2-1] = -1
-    self.state[self.height/2  ][self.width/2  ] =  1
+    self.state[int(self.height/2)-1][int(self.width/2)-1] =  1
+    self.state[int(self.height/2)-1][int(self.width/2)  ] = -1
+    self.state[int(self.height/2)  ][int(self.width/2)-1] = -1
+    self.state[int(self.height/2)  ][int(self.width/2)  ] =  1
 
   def _is_move_legal(self, x, y):
     """
