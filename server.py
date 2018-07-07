@@ -13,6 +13,7 @@ Description=""" game server
 #================================================================
 # Module
 #================================================================
+import sys
 import numpy as np
 
 #================================================================
@@ -27,7 +28,14 @@ class Human:
     """
       The function will ask for a move, check whether this move is valid, and then return a valid move
     """
-    proposed_move = input(" move is : ")
+    PASS = "PASS"
+    try:
+      proposed_move = input(" move is : ")
+    except KeyboardInterrupt:
+      sys.exit("\nUser is terminating program ...")
+    except:
+      print("invalid move")
+      return self.get_move(Board)
     try:
       proposed_move = tuple(map(int, proposed_move.split(",")))
     except:
