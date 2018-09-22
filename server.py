@@ -139,6 +139,7 @@ class Server:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
       if is_shown:
+        print("========================================")
         print("Player %i %s ('%s') to move" % (player_number[self.Board.current_player], player[self.Board.current_player].name, self.Board.token[self.Board.current_player]))
         selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, is_analysis=True)
       else:

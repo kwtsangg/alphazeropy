@@ -52,6 +52,36 @@ class train_pipeline:
     else:
       self.savename       = self.game
 
+    # AI brain params
+    self.load_path              = args.load_path
+    self.save_path              = args.save_path
+    self.load_latest_model_flag = args.load_latest_model
+    self.n_filter               = args.n_filter
+    self.kernel_size_conv       = args.kernel_size_conv
+    self.kernel_size_res        = args.kernel_size_res
+    self.n_res_blocks           = args.n_res_blocks
+    self.l2_regularization      = args.l2_regularization
+    self.bn_axis                = args.bn_axis
+
+    from alphazero import AlphaZero
+    self.AI_brain = None
+    if self.load_latest_model_flag:
+      self.AI_brain = AlphaZero()
+      print("Loading latest trained model (It may overwrite --load-path) ...")
+      latest_model_no, latest_model_dir = self.load_latest_model(0)
+      print("latest model (%i) in %s is loaded." % (latest_model_no, latest_model_dir))
+      print("Overwritting board size according to trained model ...")
+      self.board_height = self.AI_brain.board_height
+      self.board_width  = self.AI_brain.board_width
+    elif self.load_path:
+      self.AI_brain = AlphaZero()
+      print("Loading trained model %s ..." % self.load_path)
+      self.AI_brain.load_class(self.load_path)
+      print("Overwritting board size according to trained model ...")
+      self.board_height = self.AI_brain.board_height
+      self.board_width  = self.AI_brain.board_width
+
+    # Initialize Board (and/or self.AI_brain)
     sys.path.insert(0, '%s/' % self.game)
     from board import Board
     from server import Server
@@ -59,30 +89,19 @@ class train_pipeline:
     self.server           = Server(self.Board)
     self.n_feature_plane  = self.Board.n_feature_plane
 
-    # AI brain params
-    self.load_path         = args.load_path
-    self.save_path         = args.save_path
-    self.n_filter          = args.n_filter
-    self.kernel_size_conv  = args.kernel_size_conv
-    self.kernel_size_res   = args.kernel_size_res
-    self.n_res_blocks      = args.n_res_blocks
-    self.l2_regularization = args.l2_regularization
-    self.bn_axis           = args.bn_axis
-
-    from alphazero import AlphaZero
-    self.AI_brain          = AlphaZero(
-              board_height      = self.board_height,
-              board_width       = self.board_width,
-              n_feature_plane   = self.n_feature_plane,
-              n_filter          = self.n_filter,
-              kernel_size_conv  = self.kernel_size_conv,
-              kernel_size_res   = self.kernel_size_res,
-              n_res_blocks      = self.n_res_blocks,
-              l2_regularization = self.l2_regularization,
-              bn_axis           = self.bn_axis
-            )
-    if self.load_path:
-      self.AI_brain.load_class(self.load_path)
+    if not self.AI_brain:
+      print("Creating a new brain of AlphaZero ...")
+      self.AI_brain          = AlphaZero(
+                board_height      = self.board_height,
+                board_width       = self.board_width,
+                n_feature_plane   = self.n_feature_plane,
+                n_filter          = self.n_filter,
+                kernel_size_conv  = self.kernel_size_conv,
+                kernel_size_res   = self.kernel_size_res,
+                n_res_blocks      = self.n_res_blocks,
+                l2_regularization = self.l2_regularization,
+                bn_axis           = self.bn_axis
+              )
 
     # AI params
     self.temp                  = args.temp
@@ -92,6 +111,7 @@ class train_pipeline:
     self.s_thinking            = args.s_thinking
     self.use_thinking          = args.use_thinking
     self.c_puct                = args.c_puct
+
     # training params 
     self.learning_rate         = args.learning_rate
     self.learning_rate_f       = args.learning_rate_f
@@ -105,30 +125,28 @@ class train_pipeline:
     self.play_batch_size             = args.play_batch_size
 
     # other options
+    self.game_data_dir           = "%s/%s_game_data" % (self.save_path, self.savename)
     self.generate_game_data_only = args.generate_game_data_only
-    self.generate_game_data_dir  = args.generate_game_data_dir
     self.train_on_game_data_only = args.train_on_game_data_only
-    self.train_on_game_data_dir  = args.train_on_game_data_dir
     self.train_on_last_n_sets    = args.train_on_last_n_sets
     self.train_every_mins        = args.train_every_mins
 
     if self.generate_game_data_only:
-      if not self.generate_game_data_dir:
-        self.generate_game_data_dir = "%s/%s_game_data" % (self.save_path, self.savename)
-        os.system("mkdir -p %s" % self.generate_game_data_dir)
+      # if the dir doesnt exist, mkdir it
+      if not os.path.isdir(self.game_data_dir):
+        print("Making a directory to store game data (%s) ..." % self.game_data_dir)
+        os.system("mkdir -p %s" % self.game_data_dir)
 
     if self.train_on_game_data_only:
-      if not self.train_on_game_data_dir:
-        self.train_on_game_data_dir = "%s/%s_game_data" % (self.save_path, self.savename)
-        if not os.path.isdir(self.train_on_game_data_dir):
-          raise ValueError("Please specify where the directory storing the game data by --train-on-game-data-dir")
+      if not os.path.isdir(self.game_data_dir):
+        raise ValueError("The game data should be put in a subdirectory of --save-path with name %s_game_data" % self.savename)
 
   #================================================================
   # Other functions
   #================================================================
   def generate_untrained_MCTS_brain(self):
     savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
-    np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0, with n-rollout 400)")
+    np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
 
   #===============================#
   # Gameplay generating functions
@@ -179,7 +197,7 @@ class train_pipeline:
       print("Generating game data ...")
       game_data_output = self.server.start_self_play(self.AI_player, is_shown=True)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
-      np.save("%s/%s_%s_%s_model_%s.npy" % (self.generate_game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), current_model_no), list(zip(state_list, policy_list, value_list)))
+      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), current_model_no), list(zip(state_list, policy_list, value_list)))
 
   def get_dihedral_game_data(self, game_data_output):
     """
@@ -223,7 +241,7 @@ class train_pipeline:
 
   def train(self):
     """
-      Generating gamedata until certin amount, and then train on those gamedata.
+      Generating gamedata until certain amount, and then train on those gamedata.
     """
     train_x, train_y_policy, train_y_value = [], [], []
     try:
@@ -246,11 +264,11 @@ class train_pipeline:
     while True:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
-      for gamedata in sorted(os.listdir(self.train_on_game_data_dir))[::-1][:self.train_on_last_n_sets]:
+      for gamedata in sorted(os.listdir(self.game_data_dir))[::-1][:self.train_on_last_n_sets]:
         if gamedata.endswith(".npy"):
           i += 1
           print("%5i importing %s" % (i, gamedata))
-          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.train_on_game_data_dir, gamedata)) ))
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata)) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
           train_y_value.extend(value_result_list)
@@ -282,6 +300,7 @@ if __name__ == "__main__":
   # AI brain params
   parser.add_argument("--save-path",           default=os.getcwd(), action="store",            type=str,   help="directory path that trained model will be saved in")
   parser.add_argument("--load-path",                                action="store",            type=str,   help="directory path of trained model")
+  parser.add_argument("--load-latest-model",   default=False,       action="store_true",                   help="load latest trained model from the directory of --save-path")
   parser.add_argument("--n-filter",            default=32,          action="store",            type=int,   help="number of filters used in conv2D")
   parser.add_argument("--kernel-size-conv",    default=(3,3),       action="store",            type=tuple, help="kernel size of first convolution layer")
   parser.add_argument("--kernel-size-res",     default=(3,3),       action="store",            type=tuple, help="kernel size of residual blocks")
@@ -306,9 +325,7 @@ if __name__ == "__main__":
   # other
   parser.add_argument("--train-online",        default=False,       action="store_true",                   help="generate game data and train on those recursively")
   parser.add_argument("--generate-game-data-only", default=False,   action="store_true",                   help="generate game data only without training")
-  parser.add_argument("--generate-game-data-dir",                   action="store",            type=str,   help="directory path to save the generated game data (only generation, no training)")
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
-  parser.add_argument("--train-on-game-data-dir",                   action="store",            type=str,   help="directory path where game data is saved for training (only training)")
   parser.add_argument("--train-on-last-n-sets",    default=500,     action="store",            type=int,   help="train on the last n recent game")
   parser.add_argument("--train-every-mins",        default=10.,     action="store",            type=float, help="period (in mins) of performing training on game data directory")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
