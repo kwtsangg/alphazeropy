@@ -1,0 +1,3 @@
+52551 game
+p1 plays perfectly.
+p2 doesnt play perfectly.
