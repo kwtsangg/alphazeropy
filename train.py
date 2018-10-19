@@ -121,13 +121,14 @@ class train_pipeline:
     from mcts_cyclic_ref import MCTS_player
     self.AI_player = MCTS_player(self.AI_brain.predict, c_puct = self.c_puct, n_rollout = self.n_rollout, epsilon = self.epsilon, dirichlet_param = self.dir_param, temp = self.temp, s_thinking=self.s_thinking, use_thinking=self.use_thinking)
 
-    # other training params
-    self.play_batch_size             = args.play_batch_size
-
-    # other options
+    # modes and modes options
     self.game_data_dir           = "%s/%s_game_data" % (self.save_path, self.savename)
     self.generate_game_data_only = args.generate_game_data_only
     self.train_on_game_data_only = args.train_on_game_data_only
+
+    self.max_game_gen            = args.max_game_gen
+    self.fraction_game_survive   = args.fraction_game_survive
+    self.game_batch_size         = args.game_batch_size
     self.train_on_last_n_sets    = args.train_on_last_n_sets
     self.train_every_mins        = args.train_every_mins
 
@@ -175,11 +176,11 @@ class train_pipeline:
       self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
     return latest_model_no, "%s/%s" % (self.save_path, latest_model_dir)
 
-  def get_game_data(self, play_batch_size=1):
+  def get_game_data(self, max_game_gen=1):
     state_result_list  = []
     policy_result_list = []
     value_result_list  = []
-    for i in range(play_batch_size):
+    for i in range(max_game_gen):
       game_data_output = self.server.start_self_play(self.AI_player, is_shown=True)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
       state_result_list.extend(state_list)
@@ -189,8 +190,8 @@ class train_pipeline:
 
   def get_game_data_parallel(self):
     current_model_no = 0
-    for i in range(self.play_batch_size):
-      print("%i/%i" % (i, self.play_batch_size))
+    for i in range(self.max_game_gen):
+      print("%i/%i" % (i, self.max_game_gen))
       latest_model_no, latest_model_dir = self.load_latest_model(current_model_no)
       if latest_model_no > current_model_no:
         current_model_no = latest_model_no
@@ -244,17 +245,23 @@ class train_pipeline:
       Generating gamedata until certain amount, and then train on those gamedata.
     """
     train_x, train_y_policy, train_y_value = [], [], []
+    game_length = []
     try:
-      for i in range(self.play_batch_size):
-        print("%i/%i" % (i, self.play_batch_size))
+      for i in range(self.max_game_gen):
+        print("%i/%i" % (i, self.max_game_gen))
         state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
         train_x.extend(state_result_list)
         train_y_policy.extend(policy_result_list)
         train_y_value.extend(value_result_list)
-        if len(train_x) > self.batch_size:
+        game_length.append(len(state_result_list))
+        if len(game_length) > self.game_batch_size and len(train_x) > self.batch_size:
           print("Training ...")
           self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
-          train_x, train_y_policy, train_y_value = [], [], []
+          game_length = game_length[-len(game_length)*self.fraction_game_survive:]
+          sum_game_length = sum(game_length)
+          train_x = train_x[-sum_game_length:]
+          train_y_policy = train_y_policy[-sum_game_length:]
+          train_y_value = train_y_value[-sum_game_length:]
       self.AI_brain.save_class(name=self.savename, path=self.save_path)
     except KeyboardInterrupt:
       print("Saving model ...")
@@ -320,14 +327,17 @@ if __name__ == "__main__":
   parser.add_argument("--learning-rate-f",                          action="store",            type=float, help="final learning rate. If specify, exponential decay of learning rate is used.")
   parser.add_argument("--batch-size",          default=512,         action="store",            type=int,   help="mini-batch size for training")
   parser.add_argument("--epochs",              default=50,          action="store",            type=int,   help="number of training steps for each gradient descent update")
-  # other training params
-  parser.add_argument("--play-batch-size",     default=5000,        action="store",            type=int,   help="number of games generated in each calling")
-  # other
+  # modes
   parser.add_argument("--train-online",        default=False,       action="store_true",                   help="generate game data and train on those recursively")
   parser.add_argument("--generate-game-data-only", default=False,   action="store_true",                   help="generate game data only without training")
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
-  parser.add_argument("--train-on-last-n-sets",    default=500,     action="store",            type=int,   help="train on the last n recent game")
-  parser.add_argument("--train-every-mins",        default=10.,     action="store",            type=float, help="period (in mins) of performing training on game data directory")
+  # modes options
+  parser.add_argument("--game-batch-size",       default=500,     action="store",            type=int,   help="batch-size of number of game (used in --train-online)")
+  parser.add_argument("--fraction-game-survive", default=0.8,     action="store",            type=float, help="fraction of game survive for next training (used in --train-online)")
+  parser.add_argument("--max-game-gen",          default=5000,    action="store",            type=int,   help="maximum number of games generated (used in --train-online and --generate-game-data-only)")
+  parser.add_argument("--train-on-last-n-sets",  default=500,     action="store",            type=int,   help="train on the last n recent game (used in --train-on-game-data-only)")
+  parser.add_argument("--train-every-mins",      default=10.,     action="store",            type=float, help="period (in mins) of performing training (used in --train-on-game-data-only)")
+
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
 
