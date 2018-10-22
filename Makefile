@@ -47,6 +47,7 @@ generate:
  --n-filter 32 \
  --n-rollout 800 \
  --save-path ${PWD}/${game}_training_model/ \
+ --load-latest-model \
  --c-puct 5 \
  --generate-game-data-only
 

@@ -100,7 +100,7 @@ class train_pipeline:
     self.n_feature_plane  = self.Board.n_feature_plane
 
     if not self.AI_brain:
-      print("Creating a new brain of AlphaZero ...")
+      print("Creating and saving a new untrained brain of AlphaZero ...")
       self.AI_brain          = AlphaZero(
                 board_height      = self.board_height,
                 board_width       = self.board_width,
@@ -112,9 +112,8 @@ class train_pipeline:
                 l2_regularization = self.l2_regularization,
                 bn_axis           = self.bn_axis
               )
-      model_no, savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
-      np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
-      self.model_no = model_no
+      self.model_no, model_dir = self.AI_brain.save_class(name=self.savename, path=self.save_path)
+      np.savetxt("%s/elo.txt" % (model_dir), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
 
     # AI params
     self.temp                  = args.temp
@@ -329,7 +328,7 @@ if __name__ == "__main__":
   # AI brain params
   parser.add_argument("--save-path", default="%s/{}_training_model" % os.getcwd(), action="store", type=str, help="directory path that trained model will be saved in")
   parser.add_argument("--load-path",                                action="store",            type=str,   help="directory path of trained model")
-  parser.add_argument("--load-latest-model",   default=False,       action="store_true",                   help="load latest trained model from the directory of --save-path")
+  parser.add_argument("--load-latest-model",   default=False,       action="store_true",                   help="load latest trained model from the directory of --save-path instead of creating a new model")
   parser.add_argument("--n-filter",            default=32,          action="store",            type=int,   help="number of filters used in conv2D")
   parser.add_argument("--kernel-size-conv",    default=(3,3),       action="store",            type=tuple, help="kernel size of first convolution layer")
   parser.add_argument("--kernel-size-res",     default=(3,3),       action="store",            type=tuple, help="kernel size of residual blocks")
