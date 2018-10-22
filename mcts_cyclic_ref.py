@@ -265,6 +265,6 @@ class MCTS_player:
     print(return_Q_reshaped)
     print("The resultant policy is")
     print(return_probs_reshaped)
-    print("The value of the chosen move is       ", selected_move_value)
-    print("The probabilty of chosen this move is ", selected_move_prob)
+    print("The value of the chosen move      = ", selected_move_value)
+    print("The probabilty of the chosen move = ", selected_move_prob)
 

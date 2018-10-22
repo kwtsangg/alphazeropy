@@ -181,7 +181,8 @@ class AlphaZero:
         a folder contains both the model.h5 and model.txt
     """
     dir_path = str(kwargs.get('path', os.getcwd()))
-    savename = "%s_%s_board_%i_%i_res_blocks_%i_filters_%i" % (datetime.today().strftime('%Y%m%d%H%M'), name, self.board_height, self.board_width, self.n_res_blocks, self.n_filter)
+    model_no = datetime.today().strftime('%Y%m%d%H%M')
+    savename = "%s_%s_board_%i_%i_res_blocks_%i_filters_%i" % (model_no, name, self.board_height, self.board_width, self.n_res_blocks, self.n_filter)
     if not os.path.exists(dir_path+"/"+savename):
       os.makedirs(dir_path+"/"+savename)
 
@@ -203,7 +204,7 @@ class AlphaZero:
     with open("%s/%s/%s.pkl" % (dir_path, savename, savename), 'wb') as Output:
       pickle.dump(save_dict, Output, protocol=2)
 
-    return dir_path+"/"+savename
+    return model_no, dir_path+"/"+savename
 
   def load_class(self, dir_path, clear_session=True):
     savename   = dir_path.split("/")

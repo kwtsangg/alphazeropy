@@ -14,7 +14,7 @@ Description=""" A platform to play or evaluate games.
 # Module
 #================================================================
 import numpy as np
-import sys
+import os, sys
 import argparse, textwrap
 from datetime import datetime
 
@@ -31,8 +31,9 @@ def inverse_logistic(b, P, c_elo=1./400.):
 
 class platform:
   def __init__(self, args):
-    self.evaluate          = args.evaluate
-    self.evaluate_game     = int(args.evaluate_game/2)*2
+    self.evaluate            = args.evaluate
+    self.evaluate_game       = int(args.evaluate_game/2)*2
+    self.evaluate_model_path = args.evaluate_model_path
     # board params
     self.game             = args.game
     if self.game is None:
@@ -55,7 +56,12 @@ class platform:
     self.p1_c_puct       = args.p1_c_puct
 
     self.p1_brain_path  = args.p1_brain
+    if self.evaluate and not self.p1_brain_path:
+      print("Loading latest model without elo under %s ..." % self.evaluate_model_path)
+      p1_elo, p1_model_no, self.p1_brain_path = self.load_latest_model(with_elo = False)
+      print("Model %s is loaded into p1 brain as the challenger" % p1_model_no)
     self.p1_name        = args.p1_name
+
     if self.p1_brain_path is None:
       self.p1 = Human(name=self.p1_name)
     else:
@@ -81,7 +87,12 @@ class platform:
     self.p2_c_puct       = args.p2_c_puct
 
     self.p2_brain_path  = args.p2_brain
+    if self.evaluate and not self.p2_brain_path:
+      print("Loading strongest model with elo under %s ..." % self.evaluate_model_path)
+      p2_elo, p2_model_no, self.p2_brain_path = self.load_latest_model(with_elo = True)
+      print("Model %s with elo %i is loaded into p2 brain as the opponent" % (p2_model_no, p2_elo))
     self.p2_name        = args.p2_name
+
     if self.p2_brain_path is None:
       self.p2 = Human(name=self.p2_name)
     else:
@@ -106,6 +117,44 @@ class platform:
     # Other
     self.analysis = args.analysis
 
+  # Functions
+  def load_latest_model(self, with_elo = True):
+    latest_model_elo = -1.
+    latest_model_no  = 0
+    latest_model_dir = ""
+    try: # Python2
+      model_dir_list = os.walk(self.evaluate_model_path).next()[1]
+    except: # Python3
+      model_dir_list = next(os.walk(self.evaluate_model_path))[1]
+    for model_dir in model_dir_list:
+      if with_elo:
+        try:
+          model_elo = np.loadtxt("%s/%s/elo.txt" % (self.evaluate_model_path, model_dir))
+          if model_elo > latest_model_elo:
+            latest_model_elo = model_elo
+            latest_model_no  = int(model_dir.split("_")[0])
+            latest_model_dir = model_dir
+        except:
+          pass
+      else:
+        try:
+          model_elo = np.loadtxt("%s/%s/elo.txt" % (self.evaluate_model_path, model_dir))
+        except:
+          try:
+            model_no = int(model_dir.split("_")[0])
+            if model_no > latest_model_no:
+              latest_model_no  = model_no
+              latest_model_dir = model_dir
+          except:
+            pass
+    if latest_model_no == 0:
+      if with_elo:
+        raise ValueError("The script cannot find a player with elo")
+      else:
+        raise ValueError("The script cannot find a player without elo")
+    return latest_model_elo, latest_model_no, "%s/%s" % (self.evaluate_model_path, latest_model_dir)
+
+  # Main modes
   def start_game(self):
     self.server.start_game(player1=self.p1, player2=self.p2, is_analysis=self.analysis)
 
@@ -188,22 +237,30 @@ if __name__ == "__main__":
   # evaluator
   parser.add_argument("--evaluate",        default=False,    action="store_true",              help="get the elo of model (--p1-brain) against model (--p2-brain)")
   parser.add_argument("--evaluate-game",   default=100,      action="store",       type=int,   help="number of games used in getting elo")
+  parser.add_argument("--evaluate-model-path", default="%s/{}_training_model" % os.getcwd(), action="store", type=str, help="directory where models are saved")
   # other
   parser.add_argument("--analysis",        default=False,    action="store_true",              help="if MCTS_player, show the value of the chosen move")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
+  args.evaluate_model_path = args.evaluate_model_path.format(args.game)
 
   if args.evaluate:
-    if not args.p1_brain:
-      raise ValueError("specify the model by --p1-brain for evaluation (against --p2-brain)")
+    if args.p1_brain:
+      try:
+        np.loadtxt("%s/elo.txt" % args.p1_brain)
+        raise ValueError("The model (--p1-brain) has been evaluated")
+      except:
+        pass
     else:
-      if args.p2_brain:
-        try:
-          np.loadtxt("%s/elo.txt" % args.p2_brain)
-        except:
-          raise ValueError("the model (--p2-brain) has not been evaluated, so it cannot be used to evaluate other model.")
-      else:
-        raise ValueError("No model (--p2-brain) is provided as an opponent. An untrained-MCTS player (which elo is defined to be 0, with n-rollout 400) can be generated throught train.py and used instead.")
+      print("The script will try looking for the latest possible player without elo in %s as the challenger" % args.evaluate_model_path)
+
+    if args.p2_brain:
+      try:
+        np.loadtxt("%s/elo.txt" % args.p2_brain)
+      except:
+        raise ValueError("the model (--p2-brain) has not been evaluated, so it cannot be used to evaluate other model.")
+    else:
+      print("The script will try looking for the strongest possible player with elo in %s as the opponent" % args.evaluate_model_path)
 
   a = platform(args)
   if args.evaluate:

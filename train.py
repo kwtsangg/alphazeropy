@@ -16,10 +16,10 @@ Description="""
       python train.py --game reversi --board-height 8 --board-width 8
 
     To generate gameplay:
-      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --n-rollout 400 --save-path $PWD/connectfour_training_model/ --c-puct 5 --generate-game-data-only
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --n-rollout 400 --c-puct 5 --generate-game-data-only
 
     To train on gameplay:
-      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --batch-size 1024 --save-path $PWD/connectfour_training_model/ --load-path $PWD/connectfour_training_model/201804281926_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_64 --epochs 200 --learning-rate 1e-2 --train-on-game-data-only --train-on-last-n-sets 5000
+      python train.py --game connectfour --n-in-row 4 --board-height 6 --board-width 7 --n-filter 32 --batch-size 1024 --load-latest-model --epochs 200 --learning-rate 1e-2 --train-on-game-data-only --train-on-last-n-sets 5000
 """
 
 #===============================================================================
@@ -62,17 +62,22 @@ class train_pipeline:
     self.n_res_blocks           = args.n_res_blocks
     self.l2_regularization      = args.l2_regularization
     self.bn_axis                = args.bn_axis
+    self.model_no               = 0
 
     from alphazero import AlphaZero
     self.AI_brain = None
     if self.load_latest_model_flag:
       self.AI_brain = AlphaZero()
       print("Loading latest trained model (It may overwrite --load-path) ...")
-      latest_model_no, latest_model_dir = self.load_latest_model(0)
-      print("latest model (%i) in %s is loaded." % (latest_model_no, latest_model_dir))
-      print("Overwritting board size according to trained model ...")
-      self.board_height = self.AI_brain.board_height
-      self.board_width  = self.AI_brain.board_width
+      latest_model_dir = self.load_latest_model()
+      if self.model_no == 0:
+        print("An untrained brain will be created.")
+        self.AI_brain = None
+      else:
+        print("latest model (%i) in %s is loaded." % (self.model_no, latest_model_dir))
+        print("Overwritting board size according to trained model ...")
+        self.board_height = self.AI_brain.board_height
+        self.board_width  = self.AI_brain.board_width
     elif self.load_path:
       self.AI_brain = AlphaZero()
       print("Loading trained model %s ..." % self.load_path)
@@ -80,6 +85,11 @@ class train_pipeline:
       print("Overwritting board size according to trained model ...")
       self.board_height = self.AI_brain.board_height
       self.board_width  = self.AI_brain.board_width
+      self.model_no     = dir_path.split("/")
+      if len(self.model_no[-1]) == 0:
+        self.model_no   = model_no[-2]
+      else:
+        self.model_no   = model_no[-1]
 
     # Initialize Board (and/or self.AI_brain)
     sys.path.insert(0, '%s/' % self.game)
@@ -102,6 +112,9 @@ class train_pipeline:
                 l2_regularization = self.l2_regularization,
                 bn_axis           = self.bn_axis
               )
+      model_no, savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
+      np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
+      self.model_no = model_no
 
     # AI params
     self.temp                  = args.temp
@@ -128,7 +141,6 @@ class train_pipeline:
 
     self.max_game_gen            = args.max_game_gen
     self.fraction_game_survive   = args.fraction_game_survive
-    self.game_batch_size         = args.game_batch_size
     self.train_on_last_n_sets    = args.train_on_last_n_sets
     self.train_every_mins        = args.train_every_mins
 
@@ -142,20 +154,13 @@ class train_pipeline:
       if not os.path.isdir(self.game_data_dir):
         raise ValueError("The game data should be put in a subdirectory of --save-path with name %s_game_data" % self.savename)
 
-  #================================================================
-  # Other functions
-  #================================================================
-  def generate_untrained_MCTS_brain(self):
-    savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
-    np.savetxt("%s/elo.txt" % (savepath), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
-
   #===============================#
   # Gameplay generating functions
   #===============================#
 
-  def load_latest_model(self, current_model_no):
+  def load_latest_model(self):
     print("Checking on latest model ...")
-    latest_model_no  = current_model_no
+    latest_model_no  = 0
     latest_model_dir = ""
     try: # Python2
       model_dir_list = os.walk(self.save_path).next()[1]
@@ -169,12 +174,13 @@ class train_pipeline:
           latest_model_dir = model_dir
       except:
         pass
-    if latest_model_no == current_model_no:
+    if latest_model_no == 0:
       print("No latest model. Keep the current model.")
     else:
       print("Loading latest model '%s/%s' ..." % (self.save_path, latest_model_dir))
       self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
-    return latest_model_no, "%s/%s" % (self.save_path, latest_model_dir)
+      self.model_no = latest_model_no
+    return "%s/%s" % (self.save_path, latest_model_dir)
 
   def get_game_data(self, max_game_gen=1):
     state_result_list  = []
@@ -189,16 +195,19 @@ class train_pipeline:
     return state_result_list, policy_result_list, value_result_list
 
   def get_game_data_parallel(self):
-    current_model_no = 0
     for i in range(self.max_game_gen):
       print("%i/%i" % (i, self.max_game_gen))
-      latest_model_no, latest_model_dir = self.load_latest_model(current_model_no)
-      if latest_model_no > current_model_no:
-        current_model_no = latest_model_no
+      # Writing in this way is to solve a rare bug.
+      # If saving and loading of a new model happen at the same time, 'resources temporarily unavailable' appears.
+      # If so, load it once more.
+      try:
+        latest_model_dir = self.load_latest_model()
+      except:
+        latest_model_dir = self.load_latest_model()
       print("Generating game data ...")
       game_data_output = self.server.start_self_play(self.AI_player, is_shown=True)[1]
       state_list, policy_list, value_list = self.get_dihedral_game_data(game_data_output)
-      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), current_model_no), list(zip(state_list, policy_list, value_list)))
+      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), self.model_no), list(zip(state_list, policy_list, value_list)))
 
   def get_dihedral_game_data(self, game_data_output):
     """
@@ -246,26 +255,39 @@ class train_pipeline:
     """
     train_x, train_y_policy, train_y_value = [], [], []
     game_length = []
+
     try:
-      for i in range(self.max_game_gen):
-        print("%i/%i" % (i, self.max_game_gen))
-        state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
-        train_x.extend(state_result_list)
-        train_y_policy.extend(policy_result_list)
-        train_y_value.extend(value_result_list)
-        game_length.append(len(state_result_list))
-        if len(game_length) > self.game_batch_size and len(train_x) > self.batch_size:
-          print("Training ...")
-          self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
-          game_length = game_length[-len(game_length)*self.fraction_game_survive:]
-          sum_game_length = sum(game_length)
-          train_x = train_x[-sum_game_length:]
-          train_y_policy = train_y_policy[-sum_game_length:]
-          train_y_value = train_y_value[-sum_game_length:]
-      self.AI_brain.save_class(name=self.savename, path=self.save_path)
-    except KeyboardInterrupt:
-      print("Saving model ...")
-      self.AI_brain.save_class(name=self.savename, path=self.save_path)
+      i = 0
+      for gamedata in sorted(os.listdir(self.game_data_dir))[::-1][:self.train_on_last_n_sets]:
+        if gamedata.endswith(".npy"):
+          i += 1
+          print("%5i importing %s" % (i, gamedata))
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata)) ))
+          train_x.extend(state_result_list)
+          train_y_policy.extend(policy_result_list)
+          train_y_value.extend(value_result_list)
+          game_length.append(len(state_result_list))
+    except:
+      print("Fail to import existing game data. Skipping ...")
+
+    for i in range(self.max_game_gen):
+      print("%i/%i" % (i, self.max_game_gen))
+      state_result_list, policy_result_list, value_result_list = self.get_game_data(1)
+      train_x.extend(state_result_list)
+      train_y_policy.extend(policy_result_list)
+      train_y_value.extend(value_result_list)
+      game_length.append(len(state_result_list))
+      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), self.model_no), list(zip(state_list, policy_list, value_list)))
+      if len(game_length) > self.train_on_last_n_sets and len(train_x) > self.batch_size:
+        print("Training ...")
+        self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
+        game_length = game_length[-len(game_length)*self.fraction_game_survive:]
+        sum_game_length = sum(game_length)
+        train_x = train_x[-sum_game_length:]
+        train_y_policy = train_y_policy[-sum_game_length:]
+        train_y_value = train_y_value[-sum_game_length:]
+        self.model_no, savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
+    self.AI_brain.save_class(name=self.savename, path=self.save_path)
 
   def train_on_dir(self):
     while True:
@@ -285,7 +307,7 @@ class train_pipeline:
         self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
         train_x, train_y_policy, train_y_value = [], [], []
         print("Saving the trained model ...")
-        self.AI_brain.save_class(name=self.savename, path=self.save_path)
+        self.model_no, savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
       else:
         print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
       print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
@@ -305,7 +327,7 @@ if __name__ == "__main__":
   parser.add_argument("--board-width",         default=6 ,          action="store",            type=int,   help="width of the board")
   parser.add_argument("--n-in-row",                                 action="store",            type=int,   help="needed if game is gomoku or connectfour")
   # AI brain params
-  parser.add_argument("--save-path",           default=os.getcwd(), action="store",            type=str,   help="directory path that trained model will be saved in")
+  parser.add_argument("--save-path", default="%s/{}_training_model" % os.getcwd(), action="store", type=str, help="directory path that trained model will be saved in")
   parser.add_argument("--load-path",                                action="store",            type=str,   help="directory path of trained model")
   parser.add_argument("--load-latest-model",   default=False,       action="store_true",                   help="load latest trained model from the directory of --save-path")
   parser.add_argument("--n-filter",            default=32,          action="store",            type=int,   help="number of filters used in conv2D")
@@ -332,14 +354,14 @@ if __name__ == "__main__":
   parser.add_argument("--generate-game-data-only", default=False,   action="store_true",                   help="generate game data only without training")
   parser.add_argument("--train-on-game-data-only", default=False,   action="store_true",                   help="train model by game data from directory (only training, no generation)")
   # modes options
-  parser.add_argument("--game-batch-size",       default=500,     action="store",            type=int,   help="batch-size of number of game (used in --train-online)")
   parser.add_argument("--fraction-game-survive", default=0.8,     action="store",            type=float, help="fraction of game survive for next training (used in --train-online)")
   parser.add_argument("--max-game-gen",          default=5000,    action="store",            type=int,   help="maximum number of games generated (used in --train-online and --generate-game-data-only)")
-  parser.add_argument("--train-on-last-n-sets",  default=500,     action="store",            type=int,   help="train on the last n recent game (used in --train-on-game-data-only)")
+  parser.add_argument("--train-on-last-n-sets",  default=500,     action="store",            type=int,   help="train on the last n recent game (used in --train-online and --train-on-game-data-only)")
   parser.add_argument("--train-every-mins",      default=10.,     action="store",            type=float, help="period (in mins) of performing training (used in --train-on-game-data-only)")
 
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
+  args.save_path = args.save_path.format(args.game)
 
   a = train_pipeline(args)
   if args.train_online:
@@ -348,6 +370,4 @@ if __name__ == "__main__":
     a.get_game_data_parallel()
   elif args.train_on_game_data_only:
     a.train_on_dir()
-  else:
-    a.generate_untrained_MCTS_brain()
   
