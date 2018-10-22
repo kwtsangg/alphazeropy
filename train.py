@@ -276,7 +276,7 @@ class train_pipeline:
       train_y_policy.extend(policy_result_list)
       train_y_value.extend(value_result_list)
       game_length.append(len(state_result_list))
-      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), self.model_no), list(zip(state_list, policy_list, value_list)))
+      np.save("%s/%s_%s_%s_model_%s.npy" % (self.game_data_dir, self.savename, datetime.today().strftime('%Y%m%d%H%M%S'), os.getpid(), self.model_no), list(zip(state_result_list, policy_result_list, value_result_list)))
       if len(game_length) > self.train_on_last_n_sets and len(train_x) > self.batch_size:
         print("Training ...")
         self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
