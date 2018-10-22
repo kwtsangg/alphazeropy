@@ -159,7 +159,7 @@ class train_pipeline:
 
   def load_latest_model(self):
     print("Checking on latest model ...")
-    latest_model_no  = 0
+    latest_model_no  = self.model_no
     latest_model_dir = ""
     try: # Python2
       model_dir_list = os.walk(self.save_path).next()[1]
@@ -173,7 +173,7 @@ class train_pipeline:
           latest_model_dir = model_dir
       except:
         pass
-    if latest_model_no == 0:
+    if latest_model_no == self.model_no:
       print("No latest model. Keep the current model.")
     else:
       print("Loading latest model '%s/%s' ..." % (self.save_path, latest_model_dir))
