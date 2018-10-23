@@ -280,7 +280,7 @@ class train_pipeline:
       if len(game_length) > self.train_on_last_n_sets and len(train_x) > self.batch_size:
         print("Training ...")
         self.AI_brain.train(np.array(train_x), [np.array(train_y_policy), np.array(train_y_value)], learning_rate=self.learning_rate, learning_rate_f=self.learning_rate_f, epochs=self.epochs, batch_size=self.batch_size)
-        game_length = game_length[-len(game_length)*self.fraction_game_survive:]
+        game_length = game_length[-int(len(game_length)*self.fraction_game_survive):]
         sum_game_length = sum(game_length)
         train_x = train_x[-sum_game_length:]
         train_y_policy = train_y_policy[-sum_game_length:]
