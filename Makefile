@@ -2,6 +2,7 @@ game=reversi
 n_in_row=4
 board_height=8
 board_width=8
+rollout=800
 
 make:
 	make generate
@@ -29,6 +30,7 @@ online:
  --board-height ${board_height} \
  --board-width ${board_width} \
  --n-filter 32 \
+ --n-rollout ${rollout} \
  --batch-size 1024 \
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
@@ -45,7 +47,7 @@ generate:
  --board-height ${board_height} \
  --board-width ${board_width} \
  --n-filter 32 \
- --n-rollout 800 \
+ --n-rollout ${rollout} \
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
  --c-puct 5 \
