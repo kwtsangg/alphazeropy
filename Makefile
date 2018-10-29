@@ -3,6 +3,7 @@ n_in_row=4
 board_height=8
 board_width=8
 rollout=800
+gpu_memory=0.6
 
 make:
 	make generate
@@ -21,7 +22,8 @@ train:
  --learning-rate 1e-2 \
  --learning-rate-f 1e-4 \
  --train-on-game-data-only \
- --train-on-last-n-sets 5000
+ --train-on-last-n-sets 5000 \
+ --gpu-memory ${gpu_memory}
 
 online:
 	python train.py \
@@ -38,7 +40,8 @@ online:
  --learning-rate 1e-2 \
  --learning-rate-f 1e-4 \
  --train-online \
- --train-on-last-n-sets 500
+ --train-on-last-n-sets 500 \
+ --gpu-memory ${gpu_memory}
 
 generate:
 	python train.py \
@@ -51,7 +54,8 @@ generate:
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
  --c-puct 5 \
- --generate-game-data-only
+ --generate-game-data-only \
+ --gpu-memory ${gpu_memory}
 
 evaluate:
 	python play.py \

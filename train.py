@@ -357,11 +357,23 @@ if __name__ == "__main__":
   parser.add_argument("--max-game-gen",          default=5000,    action="store",            type=int,   help="maximum number of games generated (used in --train-online and --generate-game-data-only)")
   parser.add_argument("--train-on-last-n-sets",  default=500,     action="store",            type=int,   help="train on the last n recent game (used in --train-online and --train-on-game-data-only)")
   parser.add_argument("--train-every-mins",      default=10.,     action="store",            type=float, help="period (in mins) of performing training (used in --train-on-game-data-only)")
-
+  # other
+  parser.add_argument("--gpu-memory", action="store", type=float, help="fraction of gpu memory to be used (It may fail if it s less than 1Gb. And the true usage may be higher.)")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
   args.save_path = args.save_path.format(args.game)
 
+  # Limiting gpu memory
+  ## Assumed the backend is tensorflow
+  if args.gpu_memory:
+    assert args.gpu_memory > 0 and args.gpu_memory <= 1.
+    import tensorflow as tf
+    from keras.backend.tensorflow_backend import set_session
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = args.gpu_memory*0.85 # 0.85 makes the estimation of gpu usage closer to the real usage.
+    set_session(tf.Session(config=config))
+
+  # Main
   a = train_pipeline(args)
   if args.train_online:
     a.train()
