@@ -43,8 +43,8 @@ class Board:
     self.state[int(self.height/2)-1][int(self.width/2)  ] = -1
     self.state[int(self.height/2)  ][int(self.width/2)-1] = -1
     self.state[int(self.height/2)  ][int(self.width/2)  ] =  1
-    self.rotation_symmetry   = [0, 2]
-    self.reflection_symmetry = [0]
+    self.rotation_symmetry   = [0, 1, 2, 3]
+    self.reflection_symmetry = [0, 1]
 
     # sanity check
     if self.width % 2 != 0 or self.height % 2 != 0:

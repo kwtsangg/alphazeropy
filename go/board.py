@@ -42,7 +42,7 @@ class Stone:
 
 class Board:
   """
-    To make a gomoku game board for two players.
+    To make a go game board for two players.
   """
   def __init__(self,
           width  = 9,
