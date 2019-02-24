@@ -100,7 +100,7 @@ class Board:
       self.state = last_state
       del self.history[-1]
       # Switch current player
-      self.current_player *= 1
+      self.current_player *= -1
 
     return np.array([A,B,C,D])
 
@@ -153,7 +153,7 @@ class Board:
       self.history.append("PASS")
 
     # Switch current player
-    self.current_player *= 1
+    self.current_player *= -1
 
   def check_winner(self):
     """
