@@ -5,7 +5,7 @@ board_width=8
 rollout=800
 n_filter=48
 batch_size=1024
-epochs=100
+epochs=200
 
 make:
 	make generate

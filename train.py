@@ -114,6 +114,7 @@ class train_pipeline:
               )
       self.model_no, model_dir = self.AI_brain.save_class(name=self.savename, path=self.save_path)
       np.savetxt("%s/elo.txt" % (model_dir), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
+      np.savetxt("%s/game.txt" % (model_dir), [0], header="Number of gameplay")
 
     # AI params
     self.temp                  = args.temp
@@ -292,6 +293,7 @@ class train_pipeline:
     while True:
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
+      number_of_gameplay = len(os.listdir(self.game_data_dir))
       for gamedata in sorted(os.listdir(self.game_data_dir))[::-1][:self.train_on_last_n_sets]:
         if gamedata.endswith(".npy"):
           i += 1
@@ -307,6 +309,7 @@ class train_pipeline:
         train_x, train_y_policy, train_y_value = [], [], []
         print("Saving the trained model ...")
         self.model_no, savepath = self.AI_brain.save_class(name=self.savename, path=self.save_path)
+        np.savetxt("%s/game.txt" % (savepath), [number_of_gameplay], header="Number of gameplay")
       else:
         print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
       print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
