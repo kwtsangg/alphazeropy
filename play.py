@@ -42,9 +42,12 @@ class platform:
     self.board_height     = args.board_height
     self.board_width      = args.board_width
     self.n_in_row         = args.n_in_row
-    if self.game in ["gomoku", "connectfour"]:
-      if self.n_in_row is None:
-        raise ValueError("Please let me know the winning criteria by --n-in-row")
+    if self.game == "gomoku" and self.n_in_row is None:
+      self.n_in_row = 5
+      print("n_in_row is set to be 5 by default.")
+    elif self.game == "connectfour" and self.n_in_row is None:
+      self.n_in_row = 4
+      print("n_in_row is set to be 4 by default.")
 
     # player1, AI/human brain params
     self.p1_temp         = args.p1_temp

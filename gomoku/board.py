@@ -107,19 +107,19 @@ class Board:
     self.history.append((action[0], action[1]))
 
     # Switch current player
-    self.current_player = 1 if self.current_player == -1 else -1
+    self.current_player *= -1
 
   def undo_move(self, action):
     self.state[action[0]][action[1]] = 0
     del self.history[-1]
     # Switch current player
-    self.current_player = 1 if self.current_player == -1 else -1
+    self.current_player *= -1
 
   def check_winner(self):
     """
       Using the last move to check whether the game has a winner
     """
-    if len(self.history) > 0:
+    if self.history:
       last_move       = self.history[-1]
       last_player     = self.get_last_player()
 

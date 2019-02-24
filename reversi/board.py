@@ -38,7 +38,7 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    self.n_feature_plane  = 3
+    self.n_feature_plane  = 4
     self.state[int(self.height/2)-1][int(self.width/2)-1] =  1
     self.state[int(self.height/2)-1][int(self.width/2)  ] = -1
     self.state[int(self.height/2)  ][int(self.width/2)-1] = -1
@@ -60,7 +60,7 @@ class Board:
       for i in range(self.height):
         if self._is_move_legal(i,j):
           result.append((i,j))
-    if result == []:
+    if not result:
       result = ["PASS"]
     return result
 
@@ -72,10 +72,11 @@ class Board:
           A. current  player stone with 1 and others 0
           B. opponent player stone with 1 and others 0
           C. available action with 1 and others 0
-          # D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
+          D. constant layer to show whether you can pass on this turn (all 1 means you can pass)
+          # E. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
     if action:
-      last_state = self.state
+      last_state = self.state.copy()
       self.move(action)
 
     tmp_state = self.state*self.current_player
@@ -88,17 +89,20 @@ class Board:
     B = tmp_state
 
     C = np.zeros(self.height*self.width).reshape(self.height, self.width)
+    D = np.zeros(self.height*self.width).reshape(self.height, self.width)
     for legal_action in self.get_legal_action():
       if type(legal_action) != str:
         C[legal_action] = 1
+      else:
+        D = np.ones(self.height*self.width).reshape(self.height, self.width)
 
     if action:
       self.state = last_state
       del self.history[-1]
       # Switch current player
-      self.current_player = 1 if self.current_player == -1 else -1
+      self.current_player *= 1
 
-    return np.array([A,B,C])
+    return np.array([A,B,C,D])
 
   def get_current_player_feature_box_id(self, action = None):
     # The last term is to prevent cyclic tree nodes
@@ -149,13 +153,13 @@ class Board:
       self.history.append("PASS")
 
     # Switch current player
-    self.current_player = 1 if self.current_player == -1 else -1
+    self.current_player *= 1
 
   def check_winner(self):
     """
       If both players pass, we can check the score.
     """
-    if len(self.history) > 1:
+    if self.history:
       if type(self.history[-1]) == str and type(self.history[-2]) == str:
         final_score = np.sum(self.state)
         if final_score > 0:
