@@ -100,7 +100,7 @@ class Board:
     """
     if action:
       last_last_state_id = self.last_state_id
-      last_state = self.state
+      last_state = self.state.copy()
       last_group = copy.deepcopy(self.group)
       last_score = self.score
       self.move(action)
@@ -128,7 +128,7 @@ class Board:
       self.state = last_state
       del self.history[-1]
       # Switch current player
-      self.current_player = 1 if self.current_player == -1 else -1
+      self.current_player *= -1
 
     return np.array([A,B,C,D])
 
@@ -181,7 +181,7 @@ class Board:
       self.history.append(action)
 
     # Switch current player
-    self.current_player = 1 if self.current_player == -1 else -1
+    self.current_player *= -1
 
   def check_winner(self):
     """
