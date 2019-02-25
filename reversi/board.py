@@ -128,11 +128,12 @@ class Board:
       # 8 directions
       dirx = [-1,  0,  1, -1, 1, -1, 0, 1]
       diry = [-1, -1, -1,  0, 0,  1, 1, 1]
+      ndim = max(self.height, self.width)
       for d in range(8):
         ctr = 0
-        for i,j in list(zip(range(self.height),range(self.width))):
+        for i in range(ndim):
           x_new = action[0] + dirx[d] * (i+1)
-          y_new = action[1] + diry[d] * (j+1)
+          y_new = action[1] + diry[d] * (i+1)
           if x_new < 0 or x_new >= self.height or y_new < 0 or y_new >= self.width:
             ctr = 0
             break
