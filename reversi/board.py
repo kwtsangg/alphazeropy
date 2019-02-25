@@ -38,7 +38,7 @@ class Board:
     self.token            = {1:"X", -1:"O", 0:"."}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    self.n_feature_plane  = 4
+    self.n_feature_plane  = 3
     self.state[int(self.height/2)-1][int(self.width/2)-1] =  1
     self.state[int(self.height/2)-1][int(self.width/2)  ] = -1
     self.state[int(self.height/2)  ][int(self.width/2)-1] = -1
@@ -89,12 +89,9 @@ class Board:
     B = tmp_state
 
     C = np.zeros(self.height*self.width).reshape(self.height, self.width)
-    D = np.zeros(self.height*self.width).reshape(self.height, self.width)
     for legal_action in self.get_legal_action():
       if type(legal_action) != str:
         C[legal_action] = 1
-      else:
-        D = np.ones(self.height*self.width).reshape(self.height, self.width)
 
     if action:
       self.state = last_state
@@ -102,7 +99,7 @@ class Board:
       # Switch current player
       self.current_player *= -1
 
-    return np.array([A,B,C,D])
+    return np.array([A,B,C])
 
   def get_current_player_feature_box_id(self, action = None):
     # The last term is to prevent cyclic tree nodes
@@ -210,11 +207,12 @@ class Board:
     # 8 directions
     dirx = [-1,  0,  1, -1, 1, -1, 0, 1]
     diry = [-1, -1, -1,  0, 0,  1, 1, 1]
+    ndim = max(self.height, self.width)
     for d in range(8):
       ctr = 0
-      for i, j in list(zip(range(self.height), range(self.width))):
+      for i in range(ndim):
         x_new = x + dirx[d] * (i+1)
-        y_new = y + diry[d] * (j+1)
+        y_new = y + diry[d] * (i+1)
         if x_new < 0 or x_new >= self.height or y_new < 0 or y_new >= self.width:
           ctr = 0
           break
