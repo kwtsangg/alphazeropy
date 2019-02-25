@@ -72,8 +72,7 @@ class Board:
           A. current  player stone with 1 and others 0
           B. opponent player stone with 1 and others 0
           C. available action with 1 and others 0
-          D. constant layer to show whether you can pass on this turn (all 1 means you can pass)
-          # E. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
+          # D. constant layer to show the advantage/disadvantage, eg. komi, of the turn player.
     """
     if action:
       last_state = self.state.copy()
