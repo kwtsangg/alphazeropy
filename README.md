@@ -1,6 +1,6 @@
 ## alphazeropy
 This is a python-based platform on which AlphaZero is implemented to train and play board games including Go, Gomoku, ConnectFour and Reversi.
-However, I have only a GTX960M on my laptop. That's why I didnt train an AI for all board games, esp. Go and Gomoku.
+However, I have only a GTX960M on my laptop. That's why I didnt train an AI for each board game, esp. Go and Gomoku.
 
 ## References
 1. [AlphaZero: Mastering Chess and Shogi by Self-Play with a General Reinforcement Learning Algorithm](https://arxiv.org/abs/1712.01815)
