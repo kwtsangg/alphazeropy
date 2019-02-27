@@ -24,8 +24,8 @@ class Board:
     To make a gomoku game board for two players.
   """
   def __init__(self,
-          width  = 9,
-          height = 9,
+          width  = 15,
+          height = 15,
           **kwargs
           ):
     """
