@@ -28,23 +28,23 @@ class Human:
     """
       The function will ask for a move, check whether this move is valid, and then return a valid move
     """
-    PASS = "PASS"
-    try:
-      proposed_move = input(" move is : ")
-    except KeyboardInterrupt:
-      sys.exit("\nUser is terminating program ...")
-    except:
-      print("invalid move")
-      return self.get_move(Board)
-    try:
-      proposed_move = tuple(map(int, proposed_move.split(",")))
-    except:
-      pass
-    if not proposed_move in Board.get_legal_action():
-      print("invalid move")
-      return self.get_move(Board)
-    else:
-      return proposed_move
+    PASS = "PASS" # So that the user can enter PASS without quotation during 'input'
+    legal_action = Board.get_legal_action()
+    while True:
+      try:
+        proposed_move = input(" move is : ")
+        try:
+          proposed_move = tuple(map(int, proposed_move.split(",")))
+        except:
+          pass
+        if proposed_move in legal_action:
+          return proposed_move
+        else:
+          print("invalid move")
+      except KeyboardInterrupt:
+        sys.exit("\nUser is terminating program ...")
+      except:
+        print("invalid move")
 
   def update_opponent_move(self, *args):
     None
