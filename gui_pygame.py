@@ -31,8 +31,8 @@ class Board_gui:
           Nrow = 6,
           Ncol = 7,
           FPS = 30,
-          SCREENX = 512,
-          SCREENY = 512,
+          SCREENX = 800,
+          SCREENY = 800,
           XGAP = [0,0],
           YGAP = [100,0],
           Color_screen = Color_dict["brown"],
@@ -81,10 +81,14 @@ class Board_gui:
   def draw_stones(self, state):
     coord_black = np.argwhere(state == 1)
     coord_white = np.argwhere(state == -1)
+    coord_empty = np.argwhere(state == 0)
     for cb in coord_black:
       self.move(cb, Color_dict["black"])
     for cw in coord_white:
       self.move(cw, Color_dict["white"])
+    for ce in coord_empty:
+      self.move(ce, self.Color_screen)
+    pygame.display.update()
 
   def move(self, coord, color):
     Nth_row, Nth_col = coord

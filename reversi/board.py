@@ -24,15 +24,13 @@ class Board:
     To make a connect four game board for two players.
   """
   def __init__(self,
-               height   = 4,
-               width    = 4,
                **kwargs
               ):
     """
        state: 0 means empty, 1 means black/first player with token 'X', -1 means white/second player with token 'O'
     """
-    self.width            = int(width)
-    self.height           = int(height)
+    self.width            = 8 if kwargs.get('width') is None else int(kwargs.get('width'))
+    self.height           = 8 if kwargs.get('height') is None else int(kwargs.get('height'))
     self.history          = []
     self.winner           = [False, 0]
     self.token            = {1:"X", -1:"O", 0:"."}

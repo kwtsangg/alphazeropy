@@ -45,15 +45,13 @@ class Board:
     To make a go game board for two players.
   """
   def __init__(self,
-          width  = 9,
-          height = 9,
           **kwargs
           ):
     """
        state: 0 means empty, 1 means black/first player with token 'X', -1 means white/second player with token 'O'
     """
-    self.width            = int(width)
-    self.height           = int(height)
+    self.width            = 9 if kwargs.get('width') is None else int(kwargs.get('width'))
+    self.height           = 9 if kwargs.get('height') is None else int(kwargs.get('height'))
     self.komi             = 7.5 if kwargs.get('komi') is None else int(kwargs.get('komi'))
     self.history          = []
     self.winner           = [False, 0]

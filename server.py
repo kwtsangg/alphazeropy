@@ -15,7 +15,7 @@ Description=""" game server
 #================================================================
 import sys
 import numpy as np
-from gui_pygame import Board_gui
+import gui_pygame as gui
 
 #================================================================
 # Main
@@ -89,8 +89,10 @@ class Server:
 
     if is_analysis: # Hack for now
       is_gui = False
+
     if is_gui:
-      board_gui = Board_gui(self.Board.height, self.Board.width)
+      Board_gui = gui.Board_gui(self.Board.height, self.Board.width)
+      Board_gui.draw_stones(self.Board.state)
     else:
       print("")
       print("Player 1 is %s" % player1.name)
@@ -108,7 +110,7 @@ class Server:
         if is_gui and player[self.Board.current_player].nature == "human":
           legal_action = self.Board.get_legal_action()
           while True:
-            selected_move = board_gui.asking_for_move()
+            selected_move = Board_gui.asking_for_move()
             if selected_move in legal_action:
               break
             else:
@@ -119,7 +121,7 @@ class Server:
       player[self.Board.current_player].update_opponent_move(selected_move, self.Board.get_current_player_feature_box_id())
       self.Board.check_winner()
       if is_gui:
-        board_gui.draw_stones(self.Board.state)
+        Board_gui.draw_stones(self.Board.state)
       else:
         self.Board.print_state(selected_move)
 

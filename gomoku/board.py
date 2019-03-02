@@ -24,15 +24,13 @@ class Board:
     To make a gomoku game board for two players.
   """
   def __init__(self,
-          width  = 15,
-          height = 15,
           **kwargs
           ):
     """
        state: 0 means empty, 1 means black/first player with token 'X', -1 means white/second player with token 'O'
     """
-    self.width            = int(width)
-    self.height           = int(height)
+    self.width            = 15 if kwargs.get('width') is None else int(kwargs.get('width'))
+    self.height           = 15 if kwargs.get('height') is None else int(kwargs.get('height'))
     self.n_in_row         = 5 if kwargs.get('n_in_row') is None else int(kwargs.get('n_in_row'))
     self.history          = []
     self.winner           = [False, 0]

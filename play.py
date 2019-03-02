@@ -31,9 +31,11 @@ def inverse_logistic(b, P, c_elo=1./400.):
 
 class platform:
   def __init__(self, args):
+    # evaluate params
     self.evaluate            = args.evaluate
     self.evaluate_game       = int(args.evaluate_game/2)*2
     self.evaluate_model_path = args.evaluate_model_path
+
     # board params
     self.game             = args.game
     if self.game is None:
@@ -42,12 +44,6 @@ class platform:
     self.board_height     = args.board_height
     self.board_width      = args.board_width
     self.n_in_row         = args.n_in_row
-    if self.game == "gomoku" and self.n_in_row is None:
-      self.n_in_row = 5
-      print("n_in_row is set to be 5 by default.")
-    elif self.game == "connectfour" and self.n_in_row is None:
-      self.n_in_row = 4
-      print("n_in_row is set to be 4 by default.")
 
     # player1, AI/human brain params
     self.p1_temp         = args.p1_temp
@@ -117,11 +113,23 @@ class platform:
     self.Board  = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
     self.server = Server(self.Board)
 
+    # Save the Board params in case they are None (This part maybe not be necessary because they wont be used anymore)
+    if self.board_height is None:
+      self.board_height = self.Board.height
+      print("Using default board height of %i ..." % self.board_height)
+    if self.board_width is None:
+      self.board_width = self.Board.width
+      print("Using default board width of %i ..." % self.board_width)
+    if self.game in ["gomoku", "connectfour"]:
+      if self.n_in_row is None:
+        self.n_in_row = self.Board.n_in_row
+        print("Using default n_in_row of %i as winning criteria ..." % self.n_in_row)
+
     # Other
     self.analysis = args.analysis
 
   # Functions
-  def load_latest_model(self, with_elo = True):
+  def load_latest_model(self, with_elo=True):
     latest_model_elo = -1.
     latest_model_no  = 0
     latest_model_dir = ""
@@ -159,7 +167,7 @@ class platform:
 
   # Main modes
   def start_game(self):
-    self.server.start_game(player1=self.p1, player2=self.p2, is_analysis=self.analysis)
+    self.server.start_game(player1=self.p1, player2=self.p2, is_gui=True, is_analysis=self.analysis)
 
   def start_evaluation(self):
     print("Evaluating ... ")
@@ -170,7 +178,7 @@ class platform:
 
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1, self.evaluate_game))
-      winner = self.server.start_game(player1=self.p1, player2=self.p2, is_analysis=self.analysis)
+      winner = self.server.start_game(player1=self.p1, player2=self.p2, is_gui=False, is_analysis=self.analysis)
       if winner == 1:
         model_candidate["win"] += 1.
       elif winner == 0:
@@ -184,7 +192,7 @@ class platform:
 
     for i in range(int(self.evaluate_game/2)):
       print("\nGenerating gameplay %i/%i ..." % (i+1+int(self.evaluate_game/2), self.evaluate_game))
-      winner = self.server.start_game(player1=self.p2, player2=self.p1, is_analysis=self.analysis)
+      winner = self.server.start_game(player1=self.p2, player2=self.p1, is_gui=False, is_analysis=self.analysis)
       if winner == 2:
         model_candidate["win"] += 1.
       elif winner == 0:
@@ -219,8 +227,8 @@ if __name__ == "__main__":
   parser.add_argument("--p2-name",         default="Bob",    action="store",       type=str,   help="player2, name")
   # board params
   parser.add_argument("--game",                              action="store",       type=str,   help="gomoku, connectfour, reversi")
-  parser.add_argument("--board-height",    default=6,        action="store",       type=int,   help="height of the board")
-  parser.add_argument("--board-width",     default=6,        action="store",       type=int,   help="width of the board")
+  parser.add_argument("--board-height",                      action="store",       type=int,   help="height of the board")
+  parser.add_argument("--board-width",                       action="store",       type=int,   help="width of the board")
   parser.add_argument("--n-in-row",                          action="store",       type=int,   help="needed if game is gomoku or connectfour")
   # AI brain params
   parser.add_argument("--p1-temp",         default=0.,       action="store",       type=float, help="player1, temperature to control how greedy of selecting next action")

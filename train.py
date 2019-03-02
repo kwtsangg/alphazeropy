@@ -40,17 +40,11 @@ class train_pipeline:
     # board params
     self.game             = args.game
     if self.game is None:
-      raise ValueError("Please let me know which game you want to train by --game")
+      raise ValueError("Please let me know at least which game you want to train by --game")
 
     self.board_height     = args.board_height
     self.board_width      = args.board_width
     self.n_in_row         = args.n_in_row
-    if self.game in ["gomoku", "connectfour"]:
-      if self.n_in_row is None:
-        raise ValueError("Please let me know the winning criteria by --n-in-row")
-      self.savename       = "%s_n_in_row_%i" % (self.game, self.n_in_row)
-    else:
-      self.savename       = self.game
 
     # AI brain params
     self.load_path              = args.load_path
@@ -99,6 +93,22 @@ class train_pipeline:
     self.server           = Server(self.Board)
     self.n_feature_plane  = self.Board.n_feature_plane
 
+    # Save the Board params in case they are None
+    if self.board_height is None:
+      self.board_height = self.Board.height
+      print("Using default board height of %i ..." % self.board_height)
+    if self.board_width is None:
+      self.board_width = self.Board.width
+      print("Using default board width of %i ..." % self.board_width)
+    if self.game in ["gomoku", "connectfour"]:
+      if self.n_in_row is None:
+        self.n_in_row = self.Board.n_in_row
+        print("Using default n_in_row of %i as winning criteria ..." % self.n_in_row)
+      self.savename = "%s_n_in_row_%i" % (self.game, self.n_in_row)
+    else:
+      self.savename = "%s" % (self.game)
+
+    # Creating an untrained brain
     if not self.AI_brain:
       print("Creating and saving a new untrained brain of AlphaZero ...")
       self.AI_brain          = AlphaZero(
@@ -116,7 +126,7 @@ class train_pipeline:
       np.savetxt("%s/elo.txt" % (model_dir), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
       np.savetxt("%s/game.txt" % (model_dir), [0], header="Number of gameplay")
 
-    # AI params
+    # AI hyper-params
     self.temp                  = args.temp
     self.n_rollout             = args.n_rollout
     self.epsilon               = args.epsilon
@@ -325,8 +335,8 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(description=textwrap.dedent(Description), prog=__file__, formatter_class=CustomFormatter)
   # board params
   parser.add_argument("--game",                                     action="store",            type=str,   help="gomoku, connectfour, reversi")
-  parser.add_argument("--board-height",        default=6 ,          action="store",            type=int,   help="height of the board")
-  parser.add_argument("--board-width",         default=6 ,          action="store",            type=int,   help="width of the board")
+  parser.add_argument("--board-height",                             action="store",            type=int,   help="height of the board")
+  parser.add_argument("--board-width",                              action="store",            type=int,   help="width of the board")
   parser.add_argument("--n-in-row",                                 action="store",            type=int,   help="needed if game is gomoku or connectfour")
   # AI brain params
   parser.add_argument("--save-path", default="%s/{}_training_model" % os.getcwd(), action="store", type=str, help="directory path that trained model will be saved in")
