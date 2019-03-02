@@ -34,6 +34,7 @@ class Board:
     self.history          = []
     self.winner           = [False, 0]
     self.token            = {1:"X", -1:"O", 0:"."}
+    self.score            = {1:2, -1:2}
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.n_feature_plane  = 3
@@ -154,12 +155,15 @@ class Board:
     """
       If both players pass, we can check the score.
     """
+    # Calculate scores
+    self.score[1]  = len(np.argwhere(self.state == 1))
+    self.score[-1] = len(np.argwhere(self.state == -1))
+
     if self.history:
-      if type(self.history[-1]) == str and type(self.history[-2]) == str:
-        final_score = np.sum(self.state)
-        if final_score > 0:
+      if (self.score[1]+self.score[-1]==self.height*self.width) or (type(self.history[-1]) == str and type(self.history[-2]) == str):
+        if self.score[1] > self.score[-1]:
           self.winner = [True, 1]
-        elif final_score < 0:
+        elif self.score[1] < self.score[-1]:
           self.winner = [True, -1]
         else:
           self.winner = [True, 0]
@@ -189,6 +193,7 @@ class Board:
     self.current_player = 1
     self.history        = []
     self.winner         = [False, 0]
+    self.score          = {1:2, -1:2}
     self.state          = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.state[int(self.height/2)-1][int(self.width/2)-1] =  1
     self.state[int(self.height/2)-1][int(self.width/2)  ] = -1

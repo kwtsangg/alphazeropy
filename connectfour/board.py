@@ -35,6 +35,7 @@ class Board:
     self.history          = []
     self.winner           = [False, 0]
     self.token            = {1:"X", -1:"O", 0:"."}
+    self.score            = None
     self.current_player   = 1
     self.state            = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.n_feature_plane  = 3
@@ -179,4 +180,5 @@ class Board:
     self.state          = np.zeros(self.height*self.width).reshape(self.height, self.width)
     self.history        = []
     self.winner         = [False, 0]
+    self.score          = None
 

@@ -37,6 +37,7 @@ class Board_gui:
           YGAP = [100,0],
           Color_screen = Color_dict["brown"],
           Color_line = Color_dict["black"],
+          Color_font = Color_dict["black"],
           ):
     self.Nrow = Nrow
     self.Ncol = Ncol
@@ -47,20 +48,12 @@ class Board_gui:
     self.YGAP = YGAP
     self.Color_screen = Color_screen
     self.Color_line = Color_line
+    self.Color_font = Color_font
 
-    pygame.init()
-    pygame.display.set_caption('My AlphaZeroPy Platform')
-    self.FPSCLOCK = pygame.time.Clock()
-    self.reset()
-    self.draw_board()
-    pygame.display.update()
-    self.FPSCLOCK.tick(self.FPS)
-
-  def reset(self):
-    full_screenx = self.SCREENX + self.XGAP[0] + self.XGAP[1]
-    full_screeny = self.SCREENY + self.YGAP[0] + self.YGAP[1]
-    #self.SCREEN = pygame.display.set_mode((full_screenx, full_screeny),HWSURFACE|DOUBLEBUF|RESIZABLE)
-    self.SCREEN = pygame.display.set_mode((full_screenx, full_screeny))
+    self.FULL_SCREENX = self.SCREENX + self.XGAP[0] + self.XGAP[1]
+    self.FULL_SCREENY = self.SCREENY + self.YGAP[0] + self.YGAP[1]
+    #self.SCREEN = pygame.display.set_mode((FULL_SCREENX, FULL_SCREENY),HWSURFACE|DOUBLEBUF|RESIZABLE)
+    self.SCREEN = pygame.display.set_mode((self.FULL_SCREENX, self.FULL_SCREENY))
     self.SCREEN.fill(self.Color_screen)
     self.BOARDX = [self.SCREENX*0.1 + self.XGAP[0], self.SCREENX*0.9 + self.XGAP[0]]
     self.BOARDY = [self.SCREENY*0.1 + self.YGAP[0], self.SCREENY*0.9 + self.YGAP[0]]
@@ -71,12 +64,18 @@ class Board_gui:
     dx = self.colLines[1] - self.colLines[0]
     dy = self.rowLines[1] - self.rowLines[0]
     self.stone_radius = int(min(dx,dy)*0.4)
+
+    pygame.init()
+    pygame.display.set_caption('My AlphaZeroPy Platform')
+    self.FPSCLOCK = pygame.time.Clock()
+    self.draw_board()
  
   def draw_board(self):
     for c in self.colLines:
       pygame.draw.line(self.SCREEN, self.Color_line, (c,self.BOARDY[0]), (c,self.BOARDY[1]), 5)
     for r in self.rowLines:
       pygame.draw.line(self.SCREEN, self.Color_line, (self.BOARDX[0],r), (self.BOARDX[1],r), 5)
+    pygame.display.update()
 
   def draw_stones(self, state):
     coord_black = np.argwhere(state == 1)
@@ -89,6 +88,59 @@ class Board_gui:
     for ce in coord_empty:
       self.move(ce, self.Color_screen)
     pygame.display.update()
+
+  def draw_fonts(self, content, x, y, size=25):
+    font = pygame.font.SysFont("comicsansms", size)
+    text = font.render(content, True, self.Color_font)
+    self.SCREEN.blit(text, (x, y))
+    pygame.display.update()
+
+  def draw_names(self,
+          name_player1,
+          name_player2,
+          current_player=1,
+          winner=[False,0],
+          score=None,
+          ):
+    # Fill the top part with screen color to remove previous fonts
+    # WARNING: It may remove other fonts.
+    pygame.draw.rect(self.SCREEN, self.Color_screen, [0, 0, self.FULL_SCREENX, self.BOARDY[0]*0.99])
+    # Draw fonts
+    if not winner[0]:
+      if score:
+        display1 = "%.1f " % score[1]
+        display2 = "%.1f " % score[-1]
+      if current_player == 1:
+        display1 += "->"
+        display2 += "  "
+      elif current_player == -1 or current_player == 2:
+        display1 += "  "
+        display2 += "->"
+      else:
+        display1 += "  "
+        display2 += "  "
+      display1 += " player1: %s" % name_player1[:22]
+      display2 += " player2: %s" % name_player2[:22]
+    else:
+      if score:
+        display1 = "%.1f" % score[1]
+        display2 = "%.1f" % score[-1]
+      else:
+        display1 = "  " + display1[2:]
+        display2 = "  " + display2[2:]
+      if winner[1] == 1:
+        display1 += " (Winner)"
+      elif winner[1] == -1 or winner[1] == 2:
+        display2 += " (Winner)"
+      else:
+        display1 += " (Draw game)"
+        display2 += " (Draw game)"
+
+    self.draw_fonts(display1, self.BOARDX[0], int(self.BOARDY[0]*0.33))
+    self.draw_fonts(display2, self.BOARDX[0], int(self.BOARDY[0]*0.66))
+
+  def draw_pass(self, x, y):
+    pass
 
   def move(self, coord, color):
     Nth_row, Nth_col = coord
@@ -105,8 +157,7 @@ class Board_gui:
         if event.type == pygame.MOUSEBUTTONUP:
           pos = pygame.mouse.get_pos()
           Nth_row, Nth_col = self.pos_to_coord(pos)
-          if Nth_row is not None and Nth_col is not None:
-            return (Nth_row, Nth_col)
+          return (Nth_row, Nth_col)
       pygame.display.update()
       self.FPSCLOCK.tick(self.FPS)
 

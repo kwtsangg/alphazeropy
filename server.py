@@ -101,7 +101,9 @@ class Server:
       self.Board.print_state(selected_move)
 
     while not self.Board.winner[0]:
-      if not is_gui:
+      if is_gui:
+        Board_gui.draw_names(player1.name, player2.name, current_player=self.Board.current_player, winner=self.Board.winner, score=self.Board.score)
+      else:
         print("========================================")
         print("Player %i %s ('%s') to move" % (player_number[self.Board.current_player], player[self.Board.current_player].name, self.Board.token[self.Board.current_player]))
       if is_analysis and player[self.Board.current_player].nature == "mcts":
@@ -125,18 +127,17 @@ class Server:
       else:
         self.Board.print_state(selected_move)
 
-    try:
-      print("Player1 Score %.1f" % self.Board.score[1])
-      print("Player2 Score %.1f" % self.Board.score[-1])
-    except:
-      pass
-    if self.Board.winner[1] == 0:
-      print("It is a draw game !")
-    else:
-      print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
-
     if is_gui:
+      Board_gui.draw_names(player1.name, player2.name, current_player=self.Board.current_player, winner=self.Board.winner, score=self.Board.score)
       Board_gui.freeze()
+    else:
+      if self.Board.score:
+        print("Player1 Score %.1f" % self.Board.score[1])
+        print("Player2 Score %.1f" % self.Board.score[-1])
+      if self.Board.winner[1] == 0:
+        print("It is a draw game !")
+      else:
+        print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
 
     return player_number[self.Board.winner[1]]
 
@@ -155,7 +156,7 @@ class Server:
     player_number = {1:1, -1:2, 0:0}
     selected_move = None
 
-    feature_input, policy, current_players = [], [], []
+    feature_input, policy, turn_player = [], [], []
     if is_shown:
       self.Board.print_state(selected_move)
     while not self.Board.winner[0]:
@@ -169,7 +170,7 @@ class Server:
       # store game state
       feature_input.append(self.Board.get_current_player_feature_box())
       policy.append(return_probs)
-      current_players.append(self.Board.current_player)
+      turn_player.append(self.Board.current_player)
 
       # play
       self.Board.move(selected_move)
@@ -177,16 +178,14 @@ class Server:
       if is_shown:
         self.Board.print_state(selected_move)
 
-    winners_z = np.zeros(len(current_players))
+    winners_z = np.zeros(len(turn_player))
     if self.Board.winner[1] != 0:
-      winners_z[np.array(current_players) == self.Board.winner[1]] = 1
-      winners_z[np.array(current_players) != self.Board.winner[1]] = -1
+      winners_z[np.array(turn_player) == self.Board.winner[1]] = 1
+      winners_z[np.array(turn_player) != self.Board.winner[1]] = -1
     if is_shown:
-      try:
+      if self.Board.score:
         print("Player1 Score %.1f" % self.Board.score[1])
         print("Player2 Score %.1f" % self.Board.score[-1])
-      except:
-        pass
       if self.Board.winner[1] == 0:
         print("It is a draw game !")
       else:
