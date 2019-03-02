@@ -15,7 +15,6 @@ Description=""" game server
 #================================================================
 import sys
 import numpy as np
-import gui_pygame as gui
 
 #================================================================
 # Main
@@ -91,6 +90,7 @@ class Server:
       is_gui = False
 
     if is_gui:
+      import gui_pygame as gui
       Board_gui = gui.Board_gui(self.Board.height, self.Board.width)
       Board_gui.draw_stones(self.Board.state)
     else:
