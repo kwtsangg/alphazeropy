@@ -106,10 +106,12 @@ class Board_gui:
     # WARNING: It may remove other fonts.
     pygame.draw.rect(self.SCREEN, self.Color_screen, [0, 0, self.FULL_SCREENX, self.BOARDY[0]*0.99])
     # Draw fonts
+    display1 = ""
+    display2 = ""
     if not winner[0]:
       if score:
-        display1 = "%.1f " % score[1]
-        display2 = "%.1f " % score[-1]
+        display1 += "%.1f " % score[1]
+        display2 += "%.1f " % score[-1]
       if current_player == 1:
         display1 += "->"
         display2 += "  "
@@ -123,11 +125,11 @@ class Board_gui:
       display2 += " player2: %s" % name_player2[:22]
     else:
       if score:
-        display1 = "%.1f" % score[1]
-        display2 = "%.1f" % score[-1]
+        display1 += "%.1f" % score[1]
+        display2 += "%.1f" % score[-1]
       else:
-        display1 = "  " + display1[2:]
-        display2 = "  " + display2[2:]
+        display1 += "  " + display1[2:]
+        display2 += "  " + display2[2:]
       if winner[1] == 1:
         display1 += " (Winner)"
       elif winner[1] == -1 or winner[1] == 2:
