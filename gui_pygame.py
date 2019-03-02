@@ -128,8 +128,10 @@ class Board_gui:
         display1 += "%.1f" % score[1]
         display2 += "%.1f" % score[-1]
       else:
-        display1 += "  " + display1[2:]
-        display2 += "  " + display2[2:]
+        display1 += "  "
+        display2 += "  "
+      display1 += " player1: %s" % name_player1[:22]
+      display2 += " player2: %s" % name_player2[:22]
       if winner[1] == 1:
         display1 += " (Winner)"
       elif winner[1] == -1 or winner[1] == 2:
