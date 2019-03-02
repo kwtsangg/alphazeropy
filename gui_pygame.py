@@ -28,8 +28,8 @@ Color_dict["brown"] = (160,82,45)
 
 class Board_gui:
   def __init__(self,
-          Ncol = 7,
           Nrow = 6,
+          Ncol = 7,
           FPS = 30,
           SCREENX = 512,
           SCREENY = 512,
@@ -38,8 +38,8 @@ class Board_gui:
           Color_screen = Color_dict["brown"],
           Color_line = Color_dict["black"],
           ):
-    self.Ncol = Ncol
     self.Nrow = Nrow
+    self.Ncol = Ncol
     self.FPS = FPS
     self.SCREENX = SCREENX
     self.SCREENY = SCREENY
@@ -52,23 +52,9 @@ class Board_gui:
     pygame.display.set_caption('My AlphaZeroPy Platform')
     self.FPSCLOCK = pygame.time.Clock()
     self.reset()
-
-    self.draw_line()
-    while True:
-      for event in pygame.event.get():
-        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-          pygame.quit()
-          sys.exit()
-        #elif event.type==VIDEORESIZE:
-        #  self.SCREENX = event.dict['size'][0] - self.XGAP[0] - self.XGAP[1]
-        #  self.SCREENY = event.dict['size'][1] - self.YGAP[0] - self.YGAP[1]
-        #  self.reset()
-        #  self.draw_line()
-        elif event.type == pygame.MOUSEBUTTONUP:
-          pos = pygame.mouse.get_pos()
-          self.move(pos, Color_dict["white"])
-      pygame.display.update()
-      self.FPSCLOCK.tick(FPS)
+    self.draw_board()
+    pygame.display.update()
+    self.FPSCLOCK.tick(self.FPS)
 
   def reset(self):
     full_screenx = self.SCREENX + self.XGAP[0] + self.XGAP[1]
@@ -86,25 +72,47 @@ class Board_gui:
     dy = self.rowLines[1] - self.rowLines[0]
     self.stone_radius = int(min(dx,dy)*0.4)
  
-  def draw_line(self):
+  def draw_board(self):
     for c in self.colLines:
       pygame.draw.line(self.SCREEN, self.Color_line, (c,self.BOARDY[0]), (c,self.BOARDY[1]), 5)
     for r in self.rowLines:
       pygame.draw.line(self.SCREEN, self.Color_line, (self.BOARDX[0],r), (self.BOARDX[1],r), 5)
 
-  def draw_stone(self, state):
-    pos_black = np.argwhere(state == 1)
-    pos_white = np.argwhere(state == -1)
-    for bpos in pos_black:
-      self.move(bpos, Color_dict["black"])
-    for wpos in pos_white:
-      self.move(bpos, Color_dict["white"])
+  def draw_stones(self, state):
+    coord_black = np.argwhere(state == 1)
+    coord_white = np.argwhere(state == -1)
+    for cb in coord_black:
+      self.move(cb, Color_dict["black"])
+    for cw in coord_white:
+      self.move(cw, Color_dict["white"])
 
-  def move(self, pos, color):
+  def move(self, coord, color):
+    Nth_row, Nth_col = coord
+    grid_x = int(self.MidptColLines[Nth_col])
+    grid_y = int(self.MidptRowLines[Nth_row])
+    pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y),self.stone_radius)
+
+  def asking_for_move(self):
+    while True:
+      for event in pygame.event.get():
+        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+          pygame.quit()
+          sys.exit("User is terminating the gui ...")
+        if event.type == pygame.MOUSEBUTTONUP:
+          pos = pygame.mouse.get_pos()
+          Nth_row, Nth_col = self.pos_to_coord(pos)
+          if Nth_row is not None and Nth_col is not None:
+            return (Nth_row, Nth_col)
+      pygame.display.update()
+      self.FPSCLOCK.tick(self.FPS)
+
+  def pos_to_coord(self, pos):
     if self.BOARDX[1] > pos[0] > self.BOARDX[0] and self.BOARDY[1] > pos[1] > self.BOARDY[0]:
-      grid_x = int(self.MidptColLines[np.argmin(np.abs(self.MidptColLines-pos[0]))])
-      grid_y = int(self.MidptRowLines[np.argmin(np.abs(self.MidptRowLines-pos[1]))])
-      pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y), self.stone_radius)
+      Nth_col = np.argmin(np.abs(self.MidptColLines-pos[0]))
+      Nth_row = np.argmin(np.abs(self.MidptRowLines-pos[1]))
+      return Nth_row, Nth_col
+    else:
+      return None, None
 
 def game_selection():
   pass

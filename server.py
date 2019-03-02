@@ -15,6 +15,7 @@ Description=""" game server
 #================================================================
 import sys
 import numpy as np
+from gui_pygame import Board_gui
 
 #================================================================
 # Main
@@ -66,7 +67,7 @@ class Server:
   def __init__(self, Board):
     self.Board = Board
 
-  def start_game(self, player1 = Human(), player2 = Human(), is_shown = True, is_analysis = False):
+  def start_game(self, player1 = Human(), player2 = Human(), is_gui = True, is_analysis = False):
     """
       Player 1 starts the game.
     """
@@ -86,7 +87,11 @@ class Server:
     player_number = {1:1, -1:2, 0:0}
     selected_move = None
 
-    if is_shown:
+    if is_analysis: # Hack for now
+      is_gui = False
+    if is_gui:
+      board_gui = Board_gui(self.Board.height, self.Board.width)
+    else:
       print("")
       print("Player 1 is %s" % player1.name)
       print("Player 2 is %s" % player2.name)
@@ -94,29 +99,39 @@ class Server:
       self.Board.print_state(selected_move)
 
     while not self.Board.winner[0]:
-      if is_shown:
+      if not is_gui:
         print("========================================")
         print("Player %i %s ('%s') to move" % (player_number[self.Board.current_player], player[self.Board.current_player].name, self.Board.token[self.Board.current_player]))
-      if is_shown and is_analysis and player[self.Board.current_player].nature == "mcts":
+      if is_analysis and player[self.Board.current_player].nature == "mcts":
         selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, is_analysis=True)
       else:
-        selected_move = player[self.Board.current_player].get_move(self.Board)
+        if is_gui and player[self.Board.current_player].nature == "human":
+          legal_action = self.Board.get_legal_action()
+          while True:
+            selected_move = board_gui.asking_for_move()
+            if selected_move in legal_action:
+              break
+            else:
+             print("invalid move")
+        else:                           
+          selected_move = player[self.Board.current_player].get_move(self.Board)
       self.Board.move(selected_move)
       player[self.Board.current_player].update_opponent_move(selected_move, self.Board.get_current_player_feature_box_id())
       self.Board.check_winner()
-      if is_shown:
+      if is_gui:
+        board_gui.draw_stones(self.Board.state)
+      else:
         self.Board.print_state(selected_move)
 
-    if is_shown:
-      try:
-        print("Player1 Score %.1f" % self.Board.score[1])
-        print("Player2 Score %.1f" % self.Board.score[-1])
-      except:
-        pass
-      if self.Board.winner[1] == 0:
-        print("It is a draw game !")
-      else:
-        print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
+    try:
+      print("Player1 Score %.1f" % self.Board.score[1])
+      print("Player2 Score %.1f" % self.Board.score[-1])
+    except:
+      pass
+    if self.Board.winner[1] == 0:
+      print("It is a draw game !")
+    else:
+      print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
 
     return player_number[self.Board.winner[1]]
 
