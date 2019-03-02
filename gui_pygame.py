@@ -69,6 +69,11 @@ class Board_gui:
     pygame.display.set_caption('My AlphaZeroPy Platform')
     self.FPSCLOCK = pygame.time.Clock()
     self.draw_board()
+    self.pass_button = self.draw_pass()
+
+  def clean_top(self):
+    pygame.draw.rect(self.SCREEN, self.Color_screen, [0, 0, self.FULL_SCREENX, self.BOARDY[0]*0.99])
+    self.draw_pass()
  
   def draw_board(self):
     for c in self.colLines:
@@ -89,10 +94,15 @@ class Board_gui:
       self.move(ce, self.Color_screen)
     pygame.display.update()
 
-  def draw_fonts(self, content, x, y, size=25):
+  def draw_fonts(self, content, x, y, size=25, center_pos=False):
     font = pygame.font.SysFont("comicsansms", size)
     text = font.render(content, True, self.Color_font)
-    self.SCREEN.blit(text, (x, y))
+    if center_pos:
+      dx = int(text.get_width()  * 0.5)
+      dy = int(text.get_height() * 0.5)
+      self.SCREEN.blit(text, (x-dx, y-dy))
+    else:
+      self.SCREEN.blit(text, (x, y))
     pygame.display.update()
 
   def draw_names(self,
@@ -102,9 +112,7 @@ class Board_gui:
           winner=[False,0],
           score=None,
           ):
-    # Fill the top part with screen color to remove previous fonts
-    # WARNING: It may remove other fonts.
-    pygame.draw.rect(self.SCREEN, self.Color_screen, [0, 0, self.FULL_SCREENX, self.BOARDY[0]*0.99])
+    self.clean_top()
     # Draw fonts
     display1 = ""
     display2 = ""
@@ -113,11 +121,11 @@ class Board_gui:
         display1 += "%.1f " % score[1]
         display2 += "%.1f " % score[-1]
       if current_player == 1:
-        display1 += "->"
+        display1 += "=>"
         display2 += "  "
       elif current_player == -1 or current_player == 2:
         display1 += "  "
-        display2 += "->"
+        display2 += "=>"
       else:
         display1 += "  "
         display2 += "  "
@@ -133,18 +141,27 @@ class Board_gui:
       display1 += " player1: %s" % name_player1[:22]
       display2 += " player2: %s" % name_player2[:22]
       if winner[1] == 1:
-        display1 += " (Winner)"
+        display1 += " (Win)"
       elif winner[1] == -1 or winner[1] == 2:
-        display2 += " (Winner)"
+        display2 += " (Win)"
       else:
-        display1 += " (Draw game)"
-        display2 += " (Draw game)"
+        display1 += " (Draw)"
+        display2 += " (Draw)"
 
     self.draw_fonts(display1, self.BOARDX[0], int(self.BOARDY[0]*0.33))
     self.draw_fonts(display2, self.BOARDX[0], int(self.BOARDY[0]*0.66))
 
-  def draw_pass(self, x, y):
-    pass
+  def draw_pass(self):
+    w = int(self.BOARDY[0]*0.66)
+    h = int(self.BOARDY[0]*0.33)
+    x = int(self.BOARDX[1]*1) - w
+    y = int(self.BOARDY[0]*0.85) - h
+    button_rect = pygame.Rect(x,y,w,h)
+    pygame.draw.rect(self.SCREEN, self.Color_line, button_rect)
+    pygame.draw.rect(self.SCREEN, self.Color_screen, button_rect.inflate(-w*0.1,-h*0.2))
+    self.draw_fonts("PASS", int(x+0.5*w), int(y+0.5*h), center_pos=True)
+    pygame.display.update()
+    return button_rect
 
   def move(self, coord, color):
     Nth_row, Nth_col = coord
@@ -158,10 +175,9 @@ class Board_gui:
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
           pygame.quit()
           sys.exit("User is terminating the gui ...")
-        if event.type == pygame.MOUSEBUTTONUP:
+        elif event.type == pygame.MOUSEBUTTONUP:
           pos = pygame.mouse.get_pos()
-          Nth_row, Nth_col = self.pos_to_coord(pos)
-          return (Nth_row, Nth_col)
+          return self.pos_to_coord(pos)
       pygame.display.update()
       self.FPSCLOCK.tick(self.FPS)
 
@@ -169,7 +185,9 @@ class Board_gui:
     if self.BOARDX[1] > pos[0] > self.BOARDX[0] and self.BOARDY[1] > pos[1] > self.BOARDY[0]:
       Nth_col = np.argmin(np.abs(self.MidptColLines-pos[0]))
       Nth_row = np.argmin(np.abs(self.MidptRowLines-pos[1]))
-      return Nth_row, Nth_col
+      return (Nth_row, Nth_col)
+    elif self.pass_button.collidepoint(pos):
+      return "PASS"
     else:
       return None, None
 
