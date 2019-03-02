@@ -118,6 +118,13 @@ class Board_gui:
     else:
       return None, None
 
+  def freeze(self):
+    while True:
+      for event in pygame.event.get():
+        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+          pygame.quit()
+      self.FPSCLOCK.tick(self.FPS)
+
 def game_selection():
   pass
 

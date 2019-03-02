@@ -135,6 +135,9 @@ class Server:
     else:
       print("Player %i %s ('%s') wins this game !" % (player_number[self.Board.winner[1]], player[self.Board.winner[1]].name, self.Board.token[self.Board.winner[1]]))
 
+    if is_gui:
+      Board_gui.freeze()
+
     return player_number[self.Board.winner[1]]
 
   def start_self_play(self, AI_player, is_shown = True):
