@@ -9,6 +9,12 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 1. [junxiaosong AlphaZero_Gomoku github](https://github.com/junxiaosong/AlphaZero_Gomoku/)
 1. [Bayesian Optimization in AlphaGo](https://arxiv.org/abs/1812.06855)
 
+## Major dependencies
+1. tensorflow
+1. keras
+1. pygame
+You may install it by pip.
+
 ## I just want to play
 python --game connectfour --p1-brain connectfour/trained_model/201809292054_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32
 
