@@ -13,6 +13,7 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 1. tensorflow
 1. keras
 1. pygame
+
 You may install it by pip.
 
 ## I just want to play
