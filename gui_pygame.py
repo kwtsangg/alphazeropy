@@ -38,6 +38,7 @@ class Board_gui:
           Color_screen = Color_dict["brown"],
           Color_line = Color_dict["black"],
           Color_font = Color_dict["black"],
+          dualgrid = False,
           ):
     self.Nrow = Nrow
     self.Ncol = Ncol
@@ -49,6 +50,7 @@ class Board_gui:
     self.Color_screen = Color_screen
     self.Color_line = Color_line
     self.Color_font = Color_font
+    self.dualgrid = dualgrid
 
     self.FULL_SCREENX = self.SCREENX + self.XGAP[0] + self.XGAP[1]
     self.FULL_SCREENY = self.SCREENY + self.YGAP[0] + self.YGAP[1]
@@ -76,22 +78,30 @@ class Board_gui:
     self.draw_pass()
  
   def draw_board(self):
-    for c in self.colLines:
-      pygame.draw.line(self.SCREEN, self.Color_line, (c,self.BOARDY[0]), (c,self.BOARDY[1]), 5)
-    for r in self.rowLines:
-      pygame.draw.line(self.SCREEN, self.Color_line, (self.BOARDX[0],r), (self.BOARDX[1],r), 5)
+    if self.dualgrid:
+      for c in self.MidptColLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.MidptRowLines[0]), (c,self.MidptRowLines[-1]), 5)
+      for r in self.MidptRowLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.MidptColLines[0],r), (self.MidptColLines[-1],r), 5)
+    else:
+      for c in self.colLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.rowLines[0]), (c,self.rowLines[-1]), 5)
+      for r in self.rowLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.colLines[0],r), (self.colLines[-1],r), 5)
     pygame.display.update()
 
   def draw_stones(self, state):
     coord_black = np.argwhere(state == 1)
     coord_white = np.argwhere(state == -1)
     coord_empty = np.argwhere(state == 0)
+    # The order below is important to ensure the level of different colors
+    for ce in coord_empty:
+      self.move(ce, self.Color_screen)
+    self.draw_board()
     for cb in coord_black:
       self.move(cb, Color_dict["black"])
     for cw in coord_white:
       self.move(cw, Color_dict["white"])
-    for ce in coord_empty:
-      self.move(ce, self.Color_screen)
     pygame.display.update()
 
   def draw_fonts(self, content, x, y, size=25, center_pos=False):

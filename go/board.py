@@ -50,6 +50,7 @@ class Board:
     """
        state: 0 means empty, 1 means black/first player with token 'X', -1 means white/second player with token 'O'
     """
+    self.game             = "go"
     self.width            = 9 if kwargs.get('width') is None else int(kwargs.get('width'))
     self.height           = 9 if kwargs.get('height') is None else int(kwargs.get('height'))
     self.komi             = 7.5 if kwargs.get('komi') is None else int(kwargs.get('komi'))

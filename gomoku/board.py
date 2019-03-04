@@ -29,6 +29,7 @@ class Board:
     """
        state: 0 means empty, 1 means black/first player with token 'X', -1 means white/second player with token 'O'
     """
+    self.game             = "gomoku"
     self.width            = 15 if kwargs.get('width') is None else int(kwargs.get('width'))
     self.height           = 15 if kwargs.get('height') is None else int(kwargs.get('height'))
     self.n_in_row         = 5 if kwargs.get('n_in_row') is None else int(kwargs.get('n_in_row'))

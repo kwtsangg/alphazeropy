@@ -88,7 +88,10 @@ class Server:
 
     if is_gui:
       import gui_pygame as gui
-      Board_gui = gui.Board_gui(self.Board.height, self.Board.width)
+      dualgrid = False
+      if self.Board.game in ["go", "gomoku"]:
+        dualgrid = True
+      Board_gui = gui.Board_gui(self.Board.height, self.Board.width, dualgrid=dualgrid)
       Board_gui.draw_stones(self.Board.state)
     else:
       print("")
