@@ -66,6 +66,7 @@ class Board_gui:
     dx = self.colLines[1] - self.colLines[0]
     dy = self.rowLines[1] - self.rowLines[0]
     self.stone_radius = int(min(dx,dy)*0.4)
+    self.line_width = int(min(dx,dy)*0.05)
 
     pygame.init()
     pygame.display.set_caption('My AlphaZeroPy Platform')
@@ -80,14 +81,14 @@ class Board_gui:
   def draw_board(self):
     if self.dualgrid:
       for c in self.MidptColLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.MidptRowLines[0]), (c,self.MidptRowLines[-1]), 5)
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.MidptRowLines[0]), (c,self.MidptRowLines[-1]), self.line_width)
       for r in self.MidptRowLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (self.MidptColLines[0],r), (self.MidptColLines[-1],r), 5)
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.MidptColLines[0],r), (self.MidptColLines[-1],r), self.line_width)
     else:
       for c in self.colLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.rowLines[0]), (c,self.rowLines[-1]), 5)
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.rowLines[0]), (c,self.rowLines[-1]), self.line_width)
       for r in self.rowLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (self.colLines[0],r), (self.colLines[-1],r), 5)
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.colLines[0],r), (self.colLines[-1],r), self.line_width)
     pygame.display.update()
 
   def draw_stones(self, state):
@@ -168,7 +169,7 @@ class Board_gui:
     y = int(self.BOARDY[0]*0.85) - h
     button_rect = pygame.Rect(x,y,w,h)
     pygame.draw.rect(self.SCREEN, self.Color_line, button_rect)
-    pygame.draw.rect(self.SCREEN, self.Color_screen, button_rect.inflate(-w*0.1,-h*0.2))
+    pygame.draw.rect(self.SCREEN, self.Color_screen, button_rect.inflate(-2*self.line_width,-2*self.line_width))
     self.draw_fonts("PASS", int(x+0.5*w), int(y+0.5*h), center_pos=True)
     pygame.display.update()
     return button_rect
