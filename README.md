@@ -17,7 +17,7 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 You may install it by pip.
 
 ## I just want to play
-python --game connectfour --p1-brain connectfour/trained_model/201809292054_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32
+python play.py --game connectfour --p1-brain connectfour/trained_model/201809292054_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32
 
 ## I want to train a model
 1. Create a brain by 'make brain'
