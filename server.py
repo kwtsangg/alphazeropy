@@ -110,13 +110,7 @@ class Server:
       if is_analysis and player[self.Board.current_player].nature == "mcts":
         selected_move, return_probs, selected_move_prob, return_Q, selected_move_value = player[self.Board.current_player].get_move(self.Board, is_return_probs=True, is_analysis=True)
       elif is_gui and player[self.Board.current_player].nature == "human":
-        legal_action = self.Board.get_legal_action()
-        while True:
-          selected_move = Board_gui.asking_for_move()
-          if selected_move in legal_action:
-            break
-          else:
-           print("invalid move")
+        selected_move = Board_gui.asking_for_move(self.Board.get_legal_action())
       else:                           
         selected_move = player[self.Board.current_player].get_move(self.Board)
 

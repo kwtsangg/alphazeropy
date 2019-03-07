@@ -25,6 +25,7 @@ Color_dict = {}
 Color_dict["white"] = (255,255,255)
 Color_dict["black"] = (0,0,0)
 Color_dict["brown"] = (160,82,45)
+Color_dict["red"]   = (255,0,0)
 
 class Board_gui:
   def __init__(self,
@@ -127,13 +128,16 @@ class Board_gui:
     self.draw_fonts(display1, self.BOARDX[0], int(self.BOARDY[0]*0.33))
     self.draw_fonts(display2, self.BOARDX[0], int(self.BOARDY[0]*0.66))
 
-  def draw_pass(self):
+  def draw_pass(self, color_rect=None):
     w = int(self.BOARDY[0]*0.66)
     h = int(self.BOARDY[0]*0.33)
     x = int(self.BOARDX[1]*1) - w
     y = int(self.BOARDY[0]*0.85) - h
     button_rect = pygame.Rect(x,y,w,h)
-    pygame.draw.rect(self.SCREEN, self.Color_line, button_rect)
+    if color_rect:
+      pygame.draw.rect(self.SCREEN, color_rect, button_rect)
+    else:
+      pygame.draw.rect(self.SCREEN, self.Color_line, button_rect)
     pygame.draw.rect(self.SCREEN, self.Color_screen, button_rect.inflate(-2*self.line_width,-2*self.line_width))
     self.draw_fonts("PASS", int(x+0.5*w), int(y+0.5*h), center_pos=True)
     pygame.display.update()
@@ -169,11 +173,14 @@ class Board_gui:
       self.move(cw, Color_dict["white"])
     pygame.display.update()
 
-  def move(self, coord, color):
+  def move(self, coord, color, radius=None):
     Nth_row, Nth_col = coord
     grid_x = int(self.MidptColLines[Nth_col])
     grid_y = int(self.MidptRowLines[Nth_row])
-    pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y),self.stone_radius)
+    if radius:
+      pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y),radius)
+    else:
+      pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y),self.stone_radius)
 
   #================================================================
   # Utils
@@ -189,17 +196,28 @@ class Board_gui:
       self.SCREEN.blit(text, (x, y))
     pygame.display.update()
 
-  def asking_for_move(self):
+  def asking_for_move(self, legalActions):
     while True:
       for event in pygame.event.get():
         if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
           pygame.quit()
           sys.exit("User is terminating the gui ...")
+        elif event.type == pygame.KEYDOWN and event.key == K_SPACE:
+          self.draw_legalActions(legalActions)
         elif event.type == pygame.MOUSEBUTTONUP:
           pos = pygame.mouse.get_pos()
-          return self.pos_to_coord(pos)
+          coord = self.pos_to_coord(pos)
+          if coord in legalActions:
+            return coord
       pygame.display.update()
       self.FPSCLOCK.tick(self.FPS)
+
+  def draw_legalActions(self, legalActions):
+    for coord in legalActions:
+      if type(coord) != str:
+        self.move(coord, Color_dict["red"], int(self.line_width*1.1))
+      elif coord == "PASS":
+        self.draw_pass(Color_dict["red"])
 
   def pos_to_coord(self, pos):
     if self.BOARDX[1] > pos[0] > self.BOARDX[0] and self.BOARDY[1] > pos[1] > self.BOARDY[0]:
