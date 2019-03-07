@@ -74,47 +74,12 @@ class Board_gui:
     self.draw_board()
     self.pass_button = self.draw_pass()
 
+  #================================================================
+  # Top part
+  #================================================================
   def clean_top(self):
     pygame.draw.rect(self.SCREEN, self.Color_screen, [0, 0, self.FULL_SCREENX, self.BOARDY[0]*0.99])
     self.draw_pass()
- 
-  def draw_board(self):
-    if self.dualgrid:
-      for c in self.MidptColLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.MidptRowLines[0]), (c,self.MidptRowLines[-1]), self.line_width)
-      for r in self.MidptRowLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (self.MidptColLines[0],r), (self.MidptColLines[-1],r), self.line_width)
-    else:
-      for c in self.colLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.rowLines[0]), (c,self.rowLines[-1]), self.line_width)
-      for r in self.rowLines:
-        pygame.draw.line(self.SCREEN, self.Color_line, (self.colLines[0],r), (self.colLines[-1],r), self.line_width)
-    pygame.display.update()
-
-  def draw_stones(self, state):
-    coord_black = np.argwhere(state == 1)
-    coord_white = np.argwhere(state == -1)
-    coord_empty = np.argwhere(state == 0)
-    # The order below is important to ensure the level of different colors
-    for ce in coord_empty:
-      self.move(ce, self.Color_screen)
-    self.draw_board()
-    for cb in coord_black:
-      self.move(cb, Color_dict["black"])
-    for cw in coord_white:
-      self.move(cw, Color_dict["white"])
-    pygame.display.update()
-
-  def draw_fonts(self, content, x, y, size=25, center_pos=False):
-    font = pygame.font.SysFont("comicsansms", size)
-    text = font.render(content, True, self.Color_font)
-    if center_pos:
-      dx = int(text.get_width()  * 0.5)
-      dy = int(text.get_height() * 0.5)
-      self.SCREEN.blit(text, (x-dx, y-dy))
-    else:
-      self.SCREEN.blit(text, (x, y))
-    pygame.display.update()
 
   def draw_names(self,
           name_player1,
@@ -174,11 +139,55 @@ class Board_gui:
     pygame.display.update()
     return button_rect
 
+  #================================================================
+  # Body part
+  #================================================================
+  def draw_board(self):
+    if self.dualgrid:
+      for c in self.MidptColLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.MidptRowLines[0]), (c,self.MidptRowLines[-1]), self.line_width)
+      for r in self.MidptRowLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.MidptColLines[0],r), (self.MidptColLines[-1],r), self.line_width)
+    else:
+      for c in self.colLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (c,self.rowLines[0]), (c,self.rowLines[-1]), self.line_width)
+      for r in self.rowLines:
+        pygame.draw.line(self.SCREEN, self.Color_line, (self.colLines[0],r), (self.colLines[-1],r), self.line_width)
+    pygame.display.update()
+
+  def draw_stones(self, state):
+    coord_black = np.argwhere(state == 1)
+    coord_white = np.argwhere(state == -1)
+    coord_empty = np.argwhere(state == 0)
+    # The order below is important to ensure the level of different colors
+    for ce in coord_empty:
+      self.move(ce, self.Color_screen)
+    self.draw_board()
+    for cb in coord_black:
+      self.move(cb, Color_dict["black"])
+    for cw in coord_white:
+      self.move(cw, Color_dict["white"])
+    pygame.display.update()
+
   def move(self, coord, color):
     Nth_row, Nth_col = coord
     grid_x = int(self.MidptColLines[Nth_col])
     grid_y = int(self.MidptRowLines[Nth_row])
     pygame.draw.circle(self.SCREEN,color,(grid_x,grid_y),self.stone_radius)
+
+  #================================================================
+  # Utils
+  #================================================================
+  def draw_fonts(self, content, x, y, size=25, center_pos=False):
+    font = pygame.font.SysFont("comicsansms", size)
+    text = font.render(content, True, self.Color_font)
+    if center_pos:
+      dx = int(text.get_width()  * 0.5)
+      dy = int(text.get_height() * 0.5)
+      self.SCREEN.blit(text, (x-dx, y-dy))
+    else:
+      self.SCREEN.blit(text, (x, y))
+    pygame.display.update()
 
   def asking_for_move(self):
     while True:
@@ -209,9 +218,6 @@ class Board_gui:
           pygame.quit()
           return 0
       self.FPSCLOCK.tick(self.FPS)
-
-def game_selection():
-  pass
 
 if __name__ == '__main__':
   Board_gui()
