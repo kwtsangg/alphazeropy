@@ -16,7 +16,7 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 
 You may install it by pip.
 
-```python
+```bash
 pip install keras pygame tensorflow
 ```
 
