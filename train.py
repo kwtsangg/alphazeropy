@@ -347,7 +347,7 @@ if __name__ == "__main__":
   parser.add_argument("--kernel-size-res",     default=(3,3),       action="store",            type=tuple, help="kernel size of residual blocks")
   parser.add_argument("--n-res-blocks",        default=5,           action="store",            type=int,   help="number of residual blocks")
   parser.add_argument("--l2-regularization",   default=1e-4,        action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
-  parser.add_argument("--bn-axis",             default=-1,          action="store",            type=int,   help="batch normalization axis. For 'tf', it is 3. For 'th', it is 1.")
+  parser.add_argument("--bn-axis",             default=1,           action="store",            type=int,   help="batch normalization axis. For 'channel first' = 1, 'channel last' = -1.")
   # AI params
   parser.add_argument("--temp",                default=1.,          action="store",            type=float, help="temperature to control how greedy of selecting next action")
   parser.add_argument("--n-rollout",           default=400,         action="store",            type=int,   help="number of simulations for each move")
@@ -381,10 +381,8 @@ if __name__ == "__main__":
   if args.gpu_memory:
     assert args.gpu_memory > 0 and args.gpu_memory <= 1.
     import tensorflow as tf
-    from keras.backend.tensorflow_backend import set_session
-    config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = args.gpu_memory*0.85 # 0.85 makes the estimation of gpu usage closer to the real usage.
-    set_session(tf.Session(config=config))
+    opts = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory*0.85) # 0.85 makes the estimation of gpu usage closer to the real usage.
+    sess = tf.Session(config=tf.ConfigProto(gpu_options=opts))
 
   # Main
   a = train_pipeline(args)

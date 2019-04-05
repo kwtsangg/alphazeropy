@@ -11,26 +11,16 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 
 ## Major dependencies
 1. tensorflow
-1. keras
 1. pygame
 
 You may install it by pip.
 
 ```bash
-pip install keras pygame tensorflow
+pip install tensorflow pygame
 ```
 
 ## I just want to play
-
-### connectfour
-```python
-python play.py --game connectfour --p1-brain connectfour/trained_model/201809292054_connectfour_n_in_row_4_board_6_7_res_blocks_5_filters_32
-```
-
-### reversi
-```python
-python play.py --game reversi --p1-brain reversi/trained_model/201903020610_reversi_board_8_8_res_blocks_5_filters_48
-```
+I am rebuilding the AI.
 
 ## I want to train a model
 1. Create a brain by 'make brain'

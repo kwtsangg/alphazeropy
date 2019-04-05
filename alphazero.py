@@ -20,14 +20,14 @@ try:
 except ImportError:
   import _pickle as pickle
 
-from keras.models import Model, load_model
-from keras.layers import Activation, BatchNormalization, Dense, Flatten, Input
-from keras.layers import add
-from keras.layers.convolutional import Conv2D
-from keras import optimizers, regularizers
-from keras.callbacks import LearningRateScheduler
-from keras import backend as K
-K.set_image_dim_ordering("tf")
+from tensorflow.python.keras.models import Model, load_model
+from tensorflow.python.keras.layers import Activation, BatchNormalization, Dense, Flatten, Input
+from tensorflow.python.keras.layers import add
+from tensorflow.python.keras.layers.convolutional import Conv2D
+from tensorflow.python.keras import optimizers, regularizers
+from tensorflow.python.keras.callbacks import LearningRateScheduler
+from tensorflow.python.keras import backend as K
+K.set_image_data_format('channels_first')
 
 #================================================================
 # Function
@@ -63,7 +63,7 @@ class AlphaZero:
             kernel_size_res   = (1, 1),
             n_res_blocks      = 3,
             l2_regularization = 1e-4,
-            bn_axis           = -1
+            bn_axis           = 1
           ):
     if load_path:
       self.load_class(load_path)
@@ -76,16 +76,11 @@ class AlphaZero:
       self.kernel_size_res   = kernel_size_res      # kernel size of residual layers
       self.n_res_blocks      = n_res_blocks         # number of residual blocks
       self.l2_regularization = l2_regularization    # a parameter controlling the level of L2 weight regularizatio to prevent overfitting
-      self.bn_axis           = bn_axis              # batch normalization axis. For "tf", it is 3. For "th", it is 1.
+      self.bn_axis           = bn_axis              # batch normalization axis. For "channel first" = 1, "channel last" = -1.
       self.model             = self.build_model()
 
   def build_model(self):
-    # One feature map for now
-    # The following if statement seems wrong but it works.
-    if K.image_data_format() == "channels_last":
-      input_data = Input(shape=(self.n_feature_plane, self.board_height, self.board_width))
-    else:
-      input_data = Input(shape=(self.board_height, self.board_width, self.n_feature_plane))
+    input_data = Input(shape=(self.n_feature_plane, self.board_height, self.board_width))
 
     # Build for the first convolutional layer
     x = self._build_conv_block(input_data)
