@@ -37,6 +37,9 @@ from datetime import datetime
 
 class train_pipeline:
   def __init__(self, args):
+    # other
+    self.engine = args.engine
+
     # board params
     self.game             = args.game
     if self.game is None:
@@ -75,7 +78,7 @@ class train_pipeline:
     elif self.load_path:
       self.AI_brain = AlphaZero()
       print("Loading trained model %s ..." % self.load_path)
-      self.AI_brain.load_class(self.load_path)
+      self.AI_brain.load_class(self.load_path, engine=self.engine)
       print("Overwritting board size according to trained model ...")
       self.board_height = self.AI_brain.board_height
       self.board_width  = self.AI_brain.board_width
@@ -153,6 +156,7 @@ class train_pipeline:
     self.fraction_game_survive   = args.fraction_game_survive
     self.train_on_last_n_sets    = args.train_on_last_n_sets
     self.train_every_mins        = args.train_every_mins
+    self.train_rounds            = args.train_rounds
 
     if self.generate_game_data_only:
       # if the dir doesnt exist, mkdir it
@@ -188,7 +192,7 @@ class train_pipeline:
       print("No latest model. Keep the current model.")
     else:
       print("Loading latest model '%s/%s' ..." % (self.save_path, latest_model_dir))
-      self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir))
+      self.AI_brain.load_class("%s/%s" % (self.save_path, latest_model_dir), engine=self.engine)
       self.model_no = latest_model_no
     return "%s/%s" % (self.save_path, latest_model_dir)
 
@@ -300,7 +304,7 @@ class train_pipeline:
     self.AI_brain.save_class(name=self.savename, path=self.save_path)
 
   def train_on_dir(self):
-    while True:
+    for _ in range(self.train_rounds):
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
       number_of_gameplay = len(os.listdir(self.game_data_dir))
@@ -370,19 +374,24 @@ if __name__ == "__main__":
   parser.add_argument("--max-game-gen",          default=5000,    action="store",            type=int,   help="maximum number of games generated (used in --train-online and --generate-game-data-only)")
   parser.add_argument("--train-on-last-n-sets",  default=500,     action="store",            type=int,   help="train on the last n recent game (used in --train-online and --train-on-game-data-only)")
   parser.add_argument("--train-every-mins",      default=10.,     action="store",            type=float, help="period (in mins) of performing training (used in --train-on-game-data-only)")
+  parser.add_argument("--train-rounds",          default=1000,    action="store",            type=int,   help="number of rounds of training (used in --train-on-game-data-only)")
   # other
-  parser.add_argument("--gpu-memory", action="store", type=float, help="fraction of gpu memory to be used (It may fail if it s less than 1Gb. And the true usage may be higher.)")
+  parser.add_argument("--engine",     action="store", default="gpu", type=str,   help="'cpu' for hiding gpu, 'tpu' for colab training.")
+  parser.add_argument("--gpu-memory", action="store",                type=float, help="fraction of gpu memory to be used (It may fail if it s less than 1Gb. And the true usage may be higher.)")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
   args.save_path = args.save_path.format(args.game)
 
   # Limiting gpu memory
-  ## Assumed the backend is tensorflow
-  if args.gpu_memory:
+  if args.engine == "gpu" and args.gpu_memory:
     assert args.gpu_memory > 0 and args.gpu_memory <= 1.
     import tensorflow as tf
     opts = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory*0.85) # 0.85 makes the estimation of gpu usage closer to the real usage.
     sess = tf.Session(config=tf.ConfigProto(gpu_options=opts))
+  elif args.engine == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+  elif args.engine == "tpu":
+    args.train_rounds = 1
 
   # Main
   a = train_pipeline(args)

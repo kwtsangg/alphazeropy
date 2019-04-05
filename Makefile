@@ -6,6 +6,8 @@ rollout=800
 n_filter=48
 batch_size=1024
 epochs=200
+n_res_blocks=10
+train_engine=gpu
 
 make:
 	make generate
@@ -24,7 +26,8 @@ train:
  --learning-rate 1e-2 \
  --learning-rate-f 1e-4 \
  --train-on-game-data-only \
- --train-on-last-n-sets 5000
+ --train-on-last-n-sets 5000 \
+ --train-engine ${train_engine}
 
 online:
 	python train.py \
@@ -54,7 +57,8 @@ generate:
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
  --c-puct 5 \
- --generate-game-data-only
+ --generate-game-data-only \
+ --engine cpu
 
 evaluate:
 	python play.py \
@@ -71,4 +75,7 @@ brain:
  --board-width ${board_width} \
  --n-filter ${n_filter} \
  --save-path ${PWD}/${game}_training_model/ \
+ --n-res-blocks ${n_res_blocks} \
+ --engine cpu
+
 

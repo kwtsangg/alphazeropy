@@ -184,6 +184,14 @@ class AlphaZero:
     # Save the keras model first
     self.model.save("%s/%s/%s.h5" % (dir_path, savename, savename))
 
+    # Save also the weight
+    self.model.save_weights("%s/%s/%s_weight.h5" % (dir_path, savename, savename))
+
+    # Save also the model structure
+    model_json = self.model.to_json()
+    with open("%s/%s/%s.json" % (dir_path, savename, savename), "w") as json_file:
+      json_file.write(model_json)
+
     # Make a dictionary to save all other information by cPickle
     save_dict = {}
     save_dict["board_height"]      = self.board_height
@@ -196,12 +204,12 @@ class AlphaZero:
     save_dict["l2_regularization"] = self.l2_regularization
     save_dict["bn_axis"]           = self.bn_axis
 
-    with open("%s/%s/%s.pkl" % (dir_path, savename, savename), 'wb') as Output:
+    with open("%s/%s/%s.pkl" % (dir_path, savename, savename), 'w') as Output:
       pickle.dump(save_dict, Output, protocol=2)
 
     return model_no, dir_path+"/"+savename
 
-  def load_class(self, dir_path, clear_session=True):
+  def load_class(self, dir_path, clear_session=True, engine=None):
     savename   = dir_path.split("/")
     if len(savename[-1]) == 0:
       savename = savename[-2]
@@ -211,6 +219,16 @@ class AlphaZero:
       K.clear_session()
 
     self.model = load_model('%s/%s.h5' % (dir_path, savename))
+
+    if engine == "tpu":
+      TPU_WORKER = 'grpc://' + os.environ['COLAB_TPU_ADDR']
+      self.model = tf.contrib.tpu.keras_to_tpu_model(
+        self.model,
+        strategy=tf.contrib.tpu.TPUDistributionStrategy(
+            tf.contrib.cluster_resolver.TPUClusterResolver(TPU_WORKER)
+        )
+      )
+
     with open('%s/%s.pkl' % (dir_path, savename), 'rb') as Input:
       save_dict = pickle.load(Input)
     self.board_height      = save_dict["board_height"]  
