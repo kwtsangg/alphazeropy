@@ -20,6 +20,7 @@ try:
 except ImportError:
   import _pickle as pickle
 
+import tensorflow as tf
 from tensorflow.python.keras.models import Model, load_model
 from tensorflow.python.keras.layers import Activation, BatchNormalization, Dense, Flatten, Input
 from tensorflow.python.keras.layers import add
