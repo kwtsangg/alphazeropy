@@ -27,7 +27,7 @@ train:
  --learning-rate-f 1e-4 \
  --train-on-game-data-only \
  --train-on-last-n-sets 5000 \
- --train-engine ${train_engine}
+ --engine ${train_engine}
 
 online:
 	python train.py \
