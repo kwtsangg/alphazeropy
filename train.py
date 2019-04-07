@@ -304,7 +304,7 @@ class train_pipeline:
     self.AI_brain.save_class(name=self.savename, path=self.save_path)
 
   def train_on_dir(self):
-    for _ in range(self.train_rounds):
+    for i_rounds in range(self.train_rounds):
       i = 0
       train_x, train_y_policy, train_y_value = [], [], []
       number_of_gameplay = len(os.listdir(self.game_data_dir))
@@ -326,8 +326,9 @@ class train_pipeline:
         np.savetxt("%s/game.txt" % (savepath), [number_of_gameplay], header="Number of gameplay")
       else:
         print("The model is not trained. Probably because of lack of game data. sample %i, batch size %i" % (len(train_x), self.batch_size))
-      print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
-      time.sleep(self.train_every_mins*60.)
+      if i_rounds < self.train_rounds-1:
+        print("%s the next training will start after %s mins" % (datetime.today().strftime('%Y%m%d%H%M%S'), self.train_every_mins))
+        time.sleep(self.train_every_mins*60.)
 
 #================================================================
 # Footer
