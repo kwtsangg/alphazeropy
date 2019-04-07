@@ -9,18 +9,26 @@ However, I have only a GTX960M on my laptop. That's why I didnt train an AI for 
 1. [junxiaosong AlphaZero_Gomoku github](https://github.com/junxiaosong/AlphaZero_Gomoku/)
 1. [Bayesian Optimization in AlphaGo](https://arxiv.org/abs/1812.06855)
 
+## Features
+1. python2 and python3 compatible code
+1. possible to train the AI using tpu on colab
+1. many board games on the same infra-structure
+1. simple pygame gui inferface
+
 ## Major dependencies
 1. tensorflow
 1. pygame
 
-You may install it by pip.
+For beginner, you may install it by pip.
 
 ```bash
 pip install tensorflow pygame
 ```
 
+If you want to build the tensorflow from source, feel free to visit my [note](https://medium.com/%E9%96%92%E4%BA%BA%E6%97%A5%E8%A8%98/build-tensorflow-2-0-from-source-with-gpu-and-tensorrt-supports-on-ubuntu-18-04-ce6e2edc31c) on medium.
+
 ## I just want to play
-I am rebuilding the AI.
+I am rebuilding the AI. Wait please.
 
 ## I want to train a model
 1. Create a brain by 'make brain'
