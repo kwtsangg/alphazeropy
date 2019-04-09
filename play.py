@@ -171,39 +171,56 @@ class platform:
 
   def start_evaluation(self):
     print("Evaluating ... ")
-    model_candidate = {}
-    model_candidate["win"]  = 0.
-    model_candidate["draw"] = 0.
-    model_candidate["lose"] = 0.
+    # model_score[0] : [win, lose, draw] as player 1
+    # model_score[1] : [win, lose, draw] as player 2
+    try:
+      model_score = np.loadtxt("%s/evaluate.txt" % self.p1_brain_path).T
+    except:
+      model_score = np.zeros(6).reshape(2,3)
 
-    for i in range(int(self.evaluate_game/2)):
-      print("\nGenerating gameplay %i/%i ..." % (i+1, self.evaluate_game))
+    half_total_game = int(self.evaluate_game // 2)
+
+    # play as player 1
+    while np.sum(model_score[0]) < half_total_game:
+      print("\nGenerating gameplay %i/%i ..." % (np.sum(model_score), self.evaluate_game))
       winner = self.server.start_game(player1=self.p1, player2=self.p2, is_gui=False, is_analysis=self.analysis)
       if winner == 1:
-        model_candidate["win"] += 1.
+        model_score[0][0] += 1.
       elif winner == 0:
-        model_candidate["draw"] += 1.
+        model_score[0][2] += 1.
       else:
-        model_candidate["lose"] += 1.
-      print("# gameplay = %i" % (i+1))
-      print("       win = %i" % model_candidate["win"])
-      print("      draw = %i" % model_candidate["draw"])
-      print("      lose = %i" % model_candidate["lose"])
+        model_score[0][1] += 1.
 
-    for i in range(int(self.evaluate_game/2)):
-      print("\nGenerating gameplay %i/%i ..." % (i+1+int(self.evaluate_game/2), self.evaluate_game))
+      np.savetxt("%s/evaluate.txt" % self.p1_brain_path, model_score.T, header="play as p1, play as p2")
+
+      print("\nSummary: %i/%i" % (np.sum(model_score), self.evaluate_game))
+      print("      play as p1, play as p2")
+      print("win   %11i %11i" % (model_score[0][0], model_score[1][0]))
+      print("lose  %11i %11i" % (model_score[0][1], model_score[1][1]))
+      print("draw  %11i %11i" % (model_score[0][2], model_score[1][2]))
+      print("total %11i %11i" % (sum(model_score[0]), sum(model_score[1])))
+
+    # play as player 2
+    while np.sum(model_score[1]) < half_total_game:
+      print("\nGenerating gameplay %i/%i ..." % (np.sum(model_score), self.evaluate_game))
       winner = self.server.start_game(player1=self.p2, player2=self.p1, is_gui=False, is_analysis=self.analysis)
       if winner == 2:
-        model_candidate["win"] += 1.
+        model_score[1][0] += 1.
       elif winner == 0:
-        model_candidate["draw"] += 1.
+        model_score[1][2] += 1.
       else:
-        model_candidate["lose"] += 1.
-      print("# gameplay = %i" % (i+1+int(self.evaluate_game/2)))
-      print("       win = %i" % model_candidate["win"])
-      print("      draw = %i" % model_candidate["draw"])
-      print("      lose = %i" % model_candidate["lose"])
-    prob = (model_candidate["win"] + 0.5*model_candidate["draw"])/float(self.evaluate_game)
+        model_score[1][1] += 1.
+
+      np.savetxt("%s/evaluate.txt" % self.p1_brain_path, model_score.T, header="play as p1, play as p2")
+
+      print("\nSummary: %i/%i" % (np.sum(model_score), self.evaluate_game))
+      print("      play as p1, play as p2")
+      print("win   %11i %11i" % (model_score[0][0], model_score[1][0]))
+      print("lose  %11i %11i" % (model_score[0][1], model_score[1][1]))
+      print("draw  %11i %11i" % (model_score[0][2], model_score[1][2]))
+      print("total %11i %11i" % (sum(model_score[0]), sum(model_score[1])))
+
+    prob = (np.sum(model_score.T[0]) + 0.5*model_score.T[2])/float(self.evaluate_game)
     if prob == 1.:
       print("The evaluation fails because its opponent is too weak.")
       return 0
