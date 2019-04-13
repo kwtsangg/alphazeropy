@@ -181,8 +181,8 @@ class platform:
     # model_score[0] : [win, lose, draw] as player 1
     # model_score[1] : [win, lose, draw] as player 2
     try:
-      print("Loading the past score ...")
       model_score = np.loadtxt("%s/evaluate.txt" % self.p1_brain_path).T
+      print("Loaded the past score ...")
     except:
       model_score = np.zeros(6).reshape(2,3)
 
@@ -202,6 +202,10 @@ class platform:
     half_total_game = int(self.evaluate_game // 2)
     # play as player 1
     while np.sum(model_score[0]) < half_total_game:
+      try:
+        model_score = np.loadtxt("%s/evaluate.txt" % self.p1_brain_path).T
+      except:
+        pass
       print("\nGenerating gameplay %i/%i ..." % (np.sum(model_score), self.evaluate_game))
       winner = self.server.start_game(player1=self.p1, player2=self.p2, is_gui=False, is_analysis=self.analysis)
       if winner == 1:
@@ -216,6 +220,10 @@ class platform:
 
     # play as player 2
     while np.sum(model_score[1]) < half_total_game:
+      try:
+        model_score = np.loadtxt("%s/evaluate.txt" % self.p1_brain_path).T
+      except:
+        pass
       print("\nGenerating gameplay %i/%i ..." % (np.sum(model_score), self.evaluate_game))
       winner = self.server.start_game(player1=self.p2, player2=self.p1, is_gui=False, is_analysis=self.analysis)
       if winner == 2:
