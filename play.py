@@ -236,7 +236,7 @@ class platform:
       np.savetxt("%s/evaluate.txt" % self.p1_brain_path, model_score.T, header="play as p1, play as p2")
       print_summary()
 
-    prob = np.sum(model_score.T[0] + 0.5*model_score.T[2])/float(self.evaluate_game)
+    prob = np.sum(model_score.T[0] + 0.5*model_score.T[2])/float(np.sum(model_score))
     if prob == 1.:
       print("The evaluation fails because its opponent is too weak.")
       return 0
