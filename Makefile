@@ -5,7 +5,7 @@ board_width=8
 rollout=800
 n_filter=48
 batch_size=1024
-epochs=200
+epochs=300
 n_res_blocks=10
 train_engine=gpu
 
@@ -58,7 +58,8 @@ generate:
  --load-latest-model \
  --c-puct 5 \
  --generate-game-data-only \
- --engine cpu
+ --engine ${train_engine} \
+ --gpu-memory 0.4
 
 evaluate:
 	python play.py \
