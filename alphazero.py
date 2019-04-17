@@ -28,7 +28,6 @@ from tensorflow.python.keras.layers.convolutional import Conv2D
 from tensorflow.python.keras import optimizers, regularizers
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from tensorflow.python.keras import backend as K
-K.set_image_data_format('channels_first')
 
 #================================================================
 # Function
@@ -64,7 +63,7 @@ class AlphaZero:
             kernel_size_res   = (1, 1),
             n_res_blocks      = 3,
             l2_regularization = 1e-4,
-            bn_axis           = 1
+            bn_axis           = -1
           ):
     if load_path:
       self.load_class(load_path)
@@ -81,7 +80,7 @@ class AlphaZero:
       self.model             = self.build_model()
 
   def build_model(self):
-    input_data = Input(shape=(self.n_feature_plane, self.board_height, self.board_width))
+    input_data = Input(shape=(self.board_height, self.board_width, self.n_feature_plane))
 
     # Build for the first convolutional layer
     x = self._build_conv_block(input_data)
@@ -97,23 +96,23 @@ class AlphaZero:
     return model
 
   def _build_conv_block(self, x):
-    y = Conv2D(self.n_filter, self.kernel_size_conv, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization))(x)
+    y = Conv2D(self.n_filter, self.kernel_size_conv, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization), data_format="channels_last")(x)
     y = BatchNormalization(axis=self.bn_axis)(y)
     y = Activation('relu')(y)
     return y
 
   def _build_residual_block(self, x):
-    y = Conv2D(self.n_filter, self.kernel_size_res, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization))(x)
+    y = Conv2D(self.n_filter, self.kernel_size_res, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization), data_format="channels_last")(x)
     y = BatchNormalization(axis=self.bn_axis)(y)
     y = Activation('relu')(y)
-    y = Conv2D(self.n_filter, self.kernel_size_res, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization))(y)
+    y = Conv2D(self.n_filter, self.kernel_size_res, padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization), data_format="channels_last")(y)
     y = BatchNormalization(axis=self.bn_axis)(y)
     y = add([x, y])
     y = Activation('relu')(y)
     return y 
 
   def _build_policy_block(self, x):
-    y = Conv2D(2, (1, 1), padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization))(x)
+    y = Conv2D(2, (1, 1), padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization), data_format="channels_last")(x)
     y = BatchNormalization(axis=self.bn_axis)(y)
     y = Activation('relu')(y)
     y = Flatten()(y)
@@ -121,7 +120,7 @@ class AlphaZero:
     return y
  
   def _build_value_block(self, x):
-    y = Conv2D(1, (1, 1), padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization))(x)
+    y = Conv2D(1, (1, 1), padding='same', kernel_regularizer=regularizers.l2(self.l2_regularization), data_format="channels_last")(x)
     y = BatchNormalization(axis=self.bn_axis)(y)
     y = Activation('relu')(y)
     y = Dense(self.n_filter, kernel_regularizer=regularizers.l2(self.l2_regularization))(y)
@@ -130,7 +129,7 @@ class AlphaZero:
     y = Dense(1, kernel_regularizer=regularizers.l2(self.l2_regularization), activation='tanh', name='value_out')(y)
     return y
 
-  def predict(self, feature_4Dbox, raw_output = True):
+  def predict(self, feature_4Dbox, convert_input_to_NHWC = True, raw_output = True):
     """
       Input:
         feature_4Dbox : [ b, ... ] where b is a feature_box which have a shape = n_feature_plane, board_height, board_width
@@ -140,6 +139,8 @@ class AlphaZero:
         [index of feature_volumns][1] is a number   representing the probability of selecting pass
         [index of feature_volumns][2] is a number   representing the reward [-1, 1], 1 means win and -1 means lose
     """
+    if convert_input_to_NHWC:
+      feature_4Dbox = np.transpose(feature_4Dbox, axes=[0,2,3,1])
     policy_value = self.model.predict(feature_4Dbox)
     if raw_output:
       return policy_value

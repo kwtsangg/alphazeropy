@@ -58,8 +58,7 @@ generate:
  --load-latest-model \
  --c-puct 5 \
  --generate-game-data-only \
- --engine ${train_engine} \
- --gpu-memory 0.3
+ --engine cpu
 
 evaluate:
 	python play.py \

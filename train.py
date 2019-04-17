@@ -58,7 +58,6 @@ class train_pipeline:
     self.kernel_size_res        = args.kernel_size_res
     self.n_res_blocks           = args.n_res_blocks
     self.l2_regularization      = args.l2_regularization
-    self.bn_axis                = args.bn_axis
     self.model_no               = 0
 
     from alphazero import AlphaZero
@@ -123,7 +122,6 @@ class train_pipeline:
                 kernel_size_res   = self.kernel_size_res,
                 n_res_blocks      = self.n_res_blocks,
                 l2_regularization = self.l2_regularization,
-                bn_axis           = self.bn_axis
               )
       self.model_no, model_dir = self.AI_brain.save_class(name=self.savename, path=self.save_path)
       np.savetxt("%s/elo.txt" % (model_dir), [0.], header="An untrained-MCTS brain (which elo is defined to be 0)")
@@ -352,7 +350,6 @@ if __name__ == "__main__":
   parser.add_argument("--kernel-size-res",     default=(3,3),       action="store",            type=tuple, help="kernel size of residual blocks")
   parser.add_argument("--n-res-blocks",        default=5,           action="store",            type=int,   help="number of residual blocks")
   parser.add_argument("--l2-regularization",   default=1e-4,        action="store",            type=float, help="a parameter controlling the level of L2 weight regularizatio to prevent overfitting")
-  parser.add_argument("--bn-axis",             default=1,           action="store",            type=int,   help="batch normalization axis. For 'channel first' = 1, 'channel last' = -1.")
   # AI params
   parser.add_argument("--temp",                default=1.,          action="store",            type=float, help="temperature to control how greedy of selecting next action")
   parser.add_argument("--n-rollout",           default=400,         action="store",            type=int,   help="number of simulations for each move")
