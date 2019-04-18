@@ -28,6 +28,7 @@ from tensorflow.python.keras.layers.convolutional import Conv2D
 from tensorflow.python.keras import optimizers, regularizers
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from tensorflow.python.keras import backend as K
+K.set_image_data_format('channels_last')
 
 #================================================================
 # Function
@@ -229,7 +230,12 @@ class AlphaZero:
     self.l2_regularization = save_dict["l2_regularization"]
     self.bn_axis           = save_dict["bn_axis"]          
 
-    self.model = load_model('%s/%s.h5' % (dir_path, savename))
+    try:
+      self.model = load_model('%s/%s.h5' % (dir_path, savename))
+    except:
+      print("Fail to load model directly. Trying to create a new model and then loading weights ...")
+      self.model = self.build_model()
+      self.model.load_weights("%s/%s_weight.h5" % (dir_path, savename))
 
     if engine == "tpu":
       self.turn_to_tpu_model()
