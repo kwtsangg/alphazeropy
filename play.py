@@ -283,6 +283,8 @@ if __name__ == "__main__":
   parser.add_argument("--evaluate-game",   default=100,      action="store",       type=int,   help="number of games used in getting elo")
   parser.add_argument("--evaluate-model-path", default="%s/{}_training_model" % os.getcwd(), action="store", type=str, help="directory where models are saved")
   # other
+  parser.add_argument("--engine",          default="gpu",    action="store",       type=str,   help="'cpu' for hiding gpu")
+  parser.add_argument("--gpu-memory",                        action="store",       type=float, help="fraction of gpu memory to be used (It may fail if it s less than 1Gb. And the true usage may be higher.)")
   parser.add_argument("--analysis",        default=False,    action="store_true",              help="if MCTS_player, show the value of the chosen move")
   parser.add_argument("--version", action="version", version='%(prog)s ' + __version__)
   args = parser.parse_args()
@@ -334,6 +336,15 @@ if __name__ == "__main__":
       print("Looking for the strongest player in %s" % args.evaluate_model_path)
       p2_elo, p2_model_no, args.p2_brain = find_model(args.evaluate_model_path, with_elo = True, with_latest = False)
       print("Model %s is loaded into p2 brain" % p2_model_no)
+
+  # Limiting gpu memory
+  if args.engine == "gpu" and args.gpu_memory:
+    assert args.gpu_memory > 0 and args.gpu_memory <= 1.
+    import tensorflow as tf
+    opts = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory*0.85) # 0.85 makes the estimation of gpu usage closer to the real usage.
+    sess = tf.Session(config=tf.ConfigProto(gpu_options=opts))
+  elif args.engine == "cpu":
+    os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
   a = platform(args)
   if args.evaluate:

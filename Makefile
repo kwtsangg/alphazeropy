@@ -65,7 +65,8 @@ evaluate:
  --game ${game}\
  --n-in-row ${n_in_row} \
  --evaluate \
- --evaluate-game 300
+ --evaluate-game 300 \
+ --engine cpu
 
 brain:
 	python train.py \
