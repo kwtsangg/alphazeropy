@@ -152,7 +152,7 @@ class AlphaZero:
       value                 = policy_value[1].flatten()
       return list(zip(policy_without_pass, policy_with_only_pass, value))
 
-  def train(self, Board_state_array, policy_value_array, learning_rate=1e-1, learning_rate_f=None, epochs=100, batch_size=512):
+  def train(self, Board_state_array, policy_value_array, learning_rate=1e-1, learning_rate_f=None, epochs=100, batch_size=512, convert_input_to_NHWC = True):
     if learning_rate_f is None:
       learning_rate_f = learning_rate
     try:
@@ -166,6 +166,8 @@ class AlphaZero:
       self.lrate = LearningRateScheduler(lr_scheduler_wrapper(learning_rate, learning_rate_f, epochs, mode="exp"), verbose="1")
       self.first_train_loop = False
     # actual model fit
+    if convert_input_to_NHWC:
+      Board_state_array = np.transpose(Board_state_array, axes=[0,2,3,1])
     self.model.fit(Board_state_array, policy_value_array, epochs=epochs, batch_size=batch_size, callbacks=[self.lrate], verbose=1)
 
   def save_class(self, name, **kwargs):
