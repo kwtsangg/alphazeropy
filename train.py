@@ -274,7 +274,7 @@ class train_pipeline:
         if gamedata.endswith(".npy"):
           i += 1
           print("%5i importing %s" % (i, gamedata))
-          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata)) ))
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata), allow_pickle=True) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
           train_y_value.extend(value_result_list)
@@ -310,7 +310,7 @@ class train_pipeline:
         if gamedata.endswith(".npy"):
           i += 1
           print("%5i importing %s" % (i, gamedata))
-          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata)) ))
+          state_result_list, policy_result_list, value_result_list = list(zip(* np.load("%s/%s" % (self.game_data_dir, gamedata), allow_pickle=True) ))
           train_x.extend(state_result_list)
           train_y_policy.extend(policy_result_list)
           train_y_value.extend(value_result_list)
