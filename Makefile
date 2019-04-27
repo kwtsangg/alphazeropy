@@ -2,12 +2,16 @@ game=reversi
 n_in_row=4
 board_height=8
 board_width=8
-rollout=800
+rollout=400
 n_filter=48
 batch_size=1024
 epochs=200
 n_res_blocks=10
 train_engine=gpu
+c_puct=5
+lr_i=1e-2
+lr_f=1e-4
+last_n_sets=5000
 
 make:
 	make generate
@@ -23,10 +27,10 @@ train:
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
  --epochs ${epochs} \
- --learning-rate 1e-2 \
- --learning-rate-f 1e-4 \
+ --learning-rate ${lr_i} \
+ --learning-rate-f ${lr_f} \
  --train-on-game-data-only \
- --train-on-last-n-sets 5000 \
+ --train-on-last-n-sets ${last_n_sets} \
  --engine ${train_engine}
 
 online:
@@ -41,10 +45,10 @@ online:
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
  --epochs ${epochs} \
- --learning-rate 1e-2 \
- --learning-rate-f 1e-4 \
+ --learning-rate ${lr_i} \
+ --learning-rate-f ${lr_f} \
  --train-online \
- --train-on-last-n-sets 500
+ --train-on-last-n-sets ${last_n_sets}
 
 generate:
 	python train.py \
@@ -56,7 +60,7 @@ generate:
  --n-rollout ${rollout} \
  --save-path ${PWD}/${game}_training_model/ \
  --load-latest-model \
- --c-puct 5 \
+ --c-puct ${c_puct} \
  --generate-game-data-only \
  --engine cpu
 
