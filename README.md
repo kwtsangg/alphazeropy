@@ -1,9 +1,9 @@
-# alphazeropy
+# Alphazeropy
 This is a python-based platform on which AlphaZero is implemented to train and play board games including Go, Gomoku, ConnectFour and Reversi.
 
 # Features
 1. python2 and python3 compatible code
-1. possible to train the AI using tpu on colab
+1. possible to train the AI using TPU on colab
 1. many board games on the same infra-structure
 1. simple pygame gui inferface
 
@@ -28,6 +28,8 @@ python play.py --help
 ```
 
 ## Reversi
+
+### Example command
 ```bash
 python play.py --game reversi --p1-brain reversi/trained_model/201904290601_reversi_board_8_8_res_blocks_10_filters_48
 ```
