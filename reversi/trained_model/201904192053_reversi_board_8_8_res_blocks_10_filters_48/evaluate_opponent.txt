@@ -1,0 +1,1 @@
+/home/kwtsang/alphazeropy/reversi_training_model/201904190739_reversi_board_8_8_res_blocks_10_filters_48

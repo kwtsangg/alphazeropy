@@ -1,0 +1,2 @@
+# 201904250145 The elo of the model (/home/kwtsang/alphazeropy/reversi_training_model/201904241018_reversi_board_8_8_res_blocks_10_filters_48, n_rollout 400, s_thinking 1 s, use_thinking 0) is evaluated against the model (/home/kwtsang/alphazeropy/reversi_training_model/201904221947_reversi_board_8_8_res_blocks_10_filters_48, n_rollout 400, s_thinking 1 s, use_thinking 0) which has an elo of 2810
+3083
