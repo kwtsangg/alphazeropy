@@ -21,18 +21,25 @@ If you want to build the tensorflow from source, feel free to visit my [note](ht
 
 # I just want to play
 
+Take a look at the 'help'.
+
+```bash
+python play.py --help
+```
+
 ## Reversi
 ```bash
 python play.py --game reversi --p1-brain reversi/trained_model/201904290601_reversi_board_8_8_res_blocks_10_filters_48
 ```
 
-## Others
-Coming soon!
-
 ### Training summary
 ![](reversi/figs/elo_vs_game.png)
+
 I uploaded four AIs which have elo of 2051, 2542, 3083 and 3575.
 Feel free to play against the current strongest AI which has played 6454 game.
+
+## Others
+Coming soon!
 
 # I want to train a model
 1. Create a brain by 'make brain'
