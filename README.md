@@ -38,6 +38,7 @@ python play.py --game reversi --p1-brain reversi/trained_model/201904290601_reve
 ![](reversi/figs/elo_vs_game.png)
 
 I uploaded four AIs which have elo of 2051, 2542, 3083 and 3575.
+They are all under reversi/trained_model.
 Feel free to play against the current strongest AI which has played 6454 game.
 
 ## Others
