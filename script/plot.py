@@ -35,8 +35,8 @@ plt.grid()
 idx_nblocks_changed = np.append([1], np.diff(nblocks))
 for i in range(len(idx_nblocks_changed)):
   if idx_nblocks_changed[i]:
-    plt.axvline(game[i], label="nblocks %i" % nblocks[i])
-plt.legend()
+    plt.axvline(game[i])
+    plt.text(game[i]+10, 0.8*max(elo), "nblocks %i" % nblocks[i], rotation=90, bbox=dict(facecolor='red', alpha=0.5))
 plt.tight_layout()
 plt.show()
 
