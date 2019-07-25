@@ -2,7 +2,7 @@ game=connectfour
 n_in_row=4
 board_height=6
 board_width=7
-rollout=400
+rollout=800
 n_filter=48
 batch_size=1024
 epochs=200
@@ -11,7 +11,7 @@ train_engine=gpu
 c_puct=5
 lr_i=1e-2
 lr_f=1e-4
-last_n_sets=5000
+last_n_sets=10000
 
 make:
 	make generate
@@ -30,7 +30,8 @@ train:
  --learning-rate-f ${lr_f} \
  --train-on-game-data-only \
  --train-on-last-n-sets ${last_n_sets} \
- --engine ${train_engine}
+ --engine ${train_engine} \
+ --train-rounds 1
 
 online:
 	python train.py \
@@ -61,7 +62,8 @@ generate:
  --load-latest-model \
  --c-puct ${c_puct} \
  --generate-game-data-only \
- --engine cpu
+ --engine cpu \
+ --max-game-gen 1000
 
 evaluate:
 	python play.py \
