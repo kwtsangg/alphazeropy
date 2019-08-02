@@ -1,0 +1,2 @@
+# 201907262022 The elo of the model (/home/kwtsang/alphazeropy/connectfour_training_model/201907252139_connectfour_n_in_row_4_board_6_7_res_blocks_10_filters_48, n_rollout 400, s_thinking 1 s, use_thinking 0) is evaluated against the model (/home/kwtsang/alphazeropy/connectfour_training_model/201905251615_connectfour_n_in_row_4_board_6_7_res_blocks_10_filters_48, n_rollout 400, s_thinking 1 s, use_thinking 0) which has an elo of 4343
+4523

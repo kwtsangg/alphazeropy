@@ -1,0 +1,1 @@
+/home/kwtsang/alphazeropy/connectfour_training_model/201905251615_connectfour_n_in_row_4_board_6_7_res_blocks_10_filters_48
