@@ -3,6 +3,9 @@ This is a python-based platform on which AlphaZero is implemented to train and p
 
 I am glad that my project comes to an end now. I have learnt a lot during creating this python code.
 
+![](connectfour/figs/snap_connectfour.png)
+p.s. Press space bar to see what moves are available
+
 # Features
 1. python2 and python3 compatible code
 1. possible to train the AI using TPU on colab
