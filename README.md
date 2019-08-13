@@ -23,8 +23,6 @@ For beginner, you may install it by pip.
 pip install tensorflow pygame
 ```
 
-If you want to build the tensorflow from source, feel free to visit my [note](https://medium.com/%E9%96%92%E4%BA%BA%E6%97%A5%E8%A8%98/build-tensorflow-2-0-from-source-with-gpu-and-tensorrt-supports-on-ubuntu-18-04-ce6e2edc31c) on medium.
-
 # I just want to play
 
 Take a look at the 'help'.
