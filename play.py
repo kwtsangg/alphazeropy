@@ -337,12 +337,24 @@ if __name__ == "__main__":
       p2_elo, p2_model_no, args.p2_brain = find_model(args.evaluate_model_path, with_elo = True, with_latest = False)
       print("Model %s is loaded into p2 brain" % p2_model_no)
 
-  # Limiting gpu memory
-  if args.engine == "gpu" and args.gpu_memory:
-    assert args.gpu_memory > 0 and args.gpu_memory <= 1.
+  if args.engine == "gpu":
     import tensorflow as tf
-    opts = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory*0.85) # 0.85 makes the estimation of gpu usage closer to the real usage.
-    sess = tf.Session(config=tf.ConfigProto(gpu_options=opts))
+    # fix "Could not create cudnn handle: CUDNN_STATUS_INTERNAL_ERROR"
+    # https://github.com/tensorflow/tensorflow/issues/24496
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+      try:
+        for gpu in gpus:
+          tf.config.experimental.set_memory_growth(gpu, True)
+          logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+          print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+      except RuntimeError as e:
+        print(e)
+    # Limiting gpu memory
+    if args.gpu_memory:
+      assert args.gpu_memory > 0 and args.gpu_memory <= 1.
+      opts = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpu_memory*0.85) # 0.85 makes the estimation of gpu usage closer to the real usage.
+      sess = tf.Session(config=tf.ConfigProto(gpu_options=opts))
   elif args.engine == "cpu":
     os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
