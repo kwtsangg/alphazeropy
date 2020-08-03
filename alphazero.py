@@ -204,7 +204,7 @@ class AlphaZero:
     save_dict["l2_regularization"] = self.l2_regularization
     save_dict["bn_axis"]           = self.bn_axis
 
-    with open("%s/%s/%s.pkl" % (dir_path, savename, savename), 'w') as Output:
+    with open("%s/%s/%s.pkl" % (dir_path, savename, savename), 'wb+') as Output:
       pickle.dump(save_dict, Output, protocol=2)
 
     return model_no, dir_path+"/"+savename
