@@ -13,14 +13,13 @@ p.s. Press space bar to see what moves are available
 1. many board games on the same infra-structure
 1. simple pygame gui inferface
 
-# Major dependencies
-1. tensorflow
-1. pygame
-
-For beginner, you may install it by pip.
-
-```bash
-pip install tensorflow pygame
+# Setup
+First make sure that the python version is 3.7.16.
+Then we can create a virtual environment and download packages.
+```
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 # I just want to play
@@ -37,6 +36,10 @@ python play.py --help
 ```bash
 python play.py --game reversi --p1-brain reversi/trained_model/201904290601_reversi_board_8_8_res_blocks_10_filters_48
 ```
+or simply
+```
+make play_reversi
+```
 
 ### Training summary
 ![](reversi/figs/elo_vs_game.png)
@@ -50,6 +53,10 @@ Feel free to play against the current strongest AI which has played 6454 game.
 ### Example command
 ```bash
 python play.py --game connectfour --p1-brain connectfour/trained_model/201907252139_connectfour_n_in_row_4_board_6_7_res_blocks_10_filters_48
+```
+or simply
+```
+make play_connectfour
 ```
 
 ### Training summary

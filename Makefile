@@ -84,4 +84,8 @@ brain:
  --n-res-blocks ${n_res_blocks} \
  --engine cpu
 
+play_reversi:
+	python play.py --game reversi --p1-brain reversi/trained_model/201904290601_reversi_board_8_8_res_blocks_10_filters_48
 
+play_connectfour:
+	python play.py --game connectfour --p1-brain connectfour/trained_model/201907252139_connectfour_n_in_row_4_board_6_7_res_blocks_10_filters_48

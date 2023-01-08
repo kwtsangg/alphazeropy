@@ -1,0 +1,6 @@
+h5py==2.10.0
+matplotlib
+numpy
+protobuf==3.20.*
+pygame
+tensorflow==1.15.0
